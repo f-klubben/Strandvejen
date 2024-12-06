@@ -3,6 +3,7 @@
 {
     users.users.treo = {
         isNormalUser = true;
+        extraGroups = ["wheel"];
         hashedPassword = "$y$j9T$xsEPa6je/.7ZCV6rBWqXe/$kfmSa/ZylJQ9Hcax5/yZRRjEQws13Fxduqpz7WElqFC";
 
     };
@@ -11,6 +12,8 @@
     services.xserver.enable = true;
     services.xserver.displayManager = {
         lightdm.enable = true;
+    };
+    services.displayManager = {
         autoLogin = {
             enable = true;
             user = "treo";
