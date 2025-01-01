@@ -45,15 +45,24 @@ in {
 
     programs.sway.enable = true;
 
-    programs.firefox.enable = true;
+    programs.firefox = {
+        enable = true;
+        policies = {
+            WebsiteFilter = {
+                Block = ["<all_urls>"];
+                Exceptions = ["https://stregsystem.fklub.dk/*"];
+            };
+        };
+    };
+
     services.xserver.windowManager.i3 = {
         enable = true;
         configFile = pkgs.writeText "config" ''
-            bindsym Mod1+Shift+t exec ${treoutil}/bin/treoutil
+            bindsym Mod1+Shift+t exec ${pkgs.qsudo}/bin/qsudo ${treoutil}/bin/treoutil
             bindsym Mod1+Shift+q kill
             bindsym Mod1+Shift+d exec ${pkgs.dmenu}/bin/dmenu_run
             bindsym Mod1+Shift+Return exec ${pkgs.alacritty}/bin/alacritty
-            bindsym Mod1+Shift+s exec ${pkgs.firefox}/bin/firefox --kiosk https://stregsystem.fklub.dk
+            bindsym Mod1+Shift+s exec ${pkgs.firefox}/bin/firefox --kiosk --private-window https://stregsystem.fklub.dk
 
             for_window [title="TREO UTIL"] floating enable
 
@@ -61,7 +70,7 @@ in {
 
             exec ${pkgs.feh}/bin/feh --bg-center ${bg}
 
-            exec ${pkgs.firefox}/bin/firefox --kiosk https://stregsystem.fklub.dk
+            exec ${pkgs.firefox}/bin/firefox --kiosk --private-window https://stregsystem.fklub.dk
         '';
     };
     system.stateVersion = "24.11";
