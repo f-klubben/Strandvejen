@@ -15,20 +15,10 @@ in {
         hashedPassword = "$y$j9T$xsEPa6je/.7ZCV6rBWqXe/$kfmSa/ZylJQ9Hcax5/yZRRjEQws13Fxduqpz7WElqFC";
 
     };
-    boot.loader.grub.enable = false;
-    boot.loader.generic-extlinux-compatible.enable = true;
-
-    users.groups.treo = {};
+        users.groups.treo = {};
 
     services.openssh.enable = true;
 
-    hardware = {
-        raspberry-pi."4" = {
-            apply-overlays-dtmerge.enable = true;
-            fkms-3d.enable = true;
-        };
-    };
-    
     services.xserver.enable = true;
     services.xserver.displayManager = {
         lightdm.enable = true;
@@ -49,8 +39,7 @@ in {
 	    git
 	    gcc
         alacritty
-        libraspberrypi
-        raspberrypi-eeprom
+        htop
     ];
     nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
