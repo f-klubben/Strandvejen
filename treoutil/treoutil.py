@@ -40,9 +40,13 @@ class ScrollLabel(QScrollArea):
     def setText(self, text):
         # setting text to the label
         self.label.setText(text)
+        vbar = self.verticalScrollBar()
+        vbar.setValue(vbar.maximum())
 
     def append(self, text):
         self.label.setText(self.label.text() + text)
+        vbar = self.verticalScrollBar()
+        vbar.setValue(vbar.maximum())
 
 stdout_label = ScrollLabel()
 stderr_label = ScrollLabel()

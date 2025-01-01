@@ -15,8 +15,20 @@ in {
         hashedPassword = "$y$j9T$xsEPa6je/.7ZCV6rBWqXe/$kfmSa/ZylJQ9Hcax5/yZRRjEQws13Fxduqpz7WElqFC";
 
     };
+    boot.loader.grub.enable = false;
+    boot.loader.generic-extlinux-compatible.enable = true;
+
     users.groups.treo = {};
 
+    services.openssh.enable = true;
+
+    hardware = {
+        raspberry-pi."4" = {
+            apply-overlays-dtmerge.enable = true;
+            fkms-3d.enable = true;
+        };
+    };
+    
     services.xserver.enable = true;
     services.xserver.displayManager = {
         lightdm.enable = true;
@@ -26,12 +38,23 @@ in {
             enable = true;
             user = "treo";
         };
+	    defaultSession = "none+i3";
     };
 
-    environment.systemPackages = [
+    networking.networkmanager.enable = true;
+
+    environment.systemPackages = with pkgs; [
         treoutil
+        neovim
+	    git
+	    gcc
+        alacritty
+        libraspberrypi
+        raspberrypi-eeprom
     ];
     nix.settings.experimental-features = [ "nix-command" "flakes" ];
+
+    programs.sway.enable = true;
 
     programs.firefox.enable = true;
     services.xserver.windowManager.i3 = {
@@ -44,6 +67,8 @@ in {
             bindsym Mod1+Shift+s exec ${pkgs.firefox}/bin/firefox --kiosk https://stregsystem.fklub.dk
 
             for_window [title="TREO UTIL"] floating enable
+
+            bar {}
 
             exec ${pkgs.feh}/bin/feh --bg-center ${bg}
 
