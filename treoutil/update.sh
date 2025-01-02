@@ -2,7 +2,7 @@
 
 cd /etc/nixos
 
-git pull
+sudo -u treo git pull
 
 nix flake update
 
