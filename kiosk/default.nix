@@ -15,7 +15,9 @@ in {
         hashedPassword = "$y$j9T$xsEPa6je/.7ZCV6rBWqXe/$kfmSa/ZylJQ9Hcax5/yZRRjEQws13Fxduqpz7WElqFC";
 
     };
-    users.groups.treo = {};
+        users.groups.treo = {};
+
+    services.openssh.enable = true;
 
     services.xserver.enable = true;
     services.xserver.displayManager = {
@@ -26,28 +28,49 @@ in {
             enable = true;
             user = "treo";
         };
+	    defaultSession = "none+i3";
     };
 
-    environment.systemPackages = [
+    networking.networkmanager.enable = true;
+
+    environment.systemPackages = with pkgs; [
         treoutil
+        neovim
+	    git
+	    gcc
+        alacritty
+        htop
     ];
     nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
-    programs.firefox.enable = true;
+    programs.sway.enable = true;
+
+    programs.firefox = {
+        enable = true;
+        policies = {
+            WebsiteFilter = {
+                Block = ["<all_urls>"];
+                Exceptions = ["https://stregsystem.fklub.dk/*"];
+            };
+        };
+    };
+
     services.xserver.windowManager.i3 = {
         enable = true;
         configFile = pkgs.writeText "config" ''
-            bindsym Mod1+Shift+t exec ${treoutil}/bin/treoutil
+            bindsym Mod1+Shift+t exec ${pkgs.qsudo}/bin/qsudo ${treoutil}/bin/treoutil
             bindsym Mod1+Shift+q kill
             bindsym Mod1+Shift+d exec ${pkgs.dmenu}/bin/dmenu_run
             bindsym Mod1+Shift+Return exec ${pkgs.alacritty}/bin/alacritty
-            bindsym Mod1+Shift+s exec ${pkgs.firefox}/bin/firefox --kiosk https://stregsystem.fklub.dk
+            bindsym Mod1+Shift+s exec ${pkgs.firefox}/bin/firefox --kiosk --private-window https://stregsystem.fklub.dk
 
             for_window [title="TREO UTIL"] floating enable
 
+            bar {}
+
             exec ${pkgs.feh}/bin/feh --bg-center ${bg}
 
-            exec ${pkgs.firefox}/bin/firefox --kiosk https://stregsystem.fklub.dk
+            exec ${pkgs.firefox}/bin/firefox --kiosk --private-window https://stregsystem.fklub.dk
         '';
     };
     system.stateVersion = "24.11";
