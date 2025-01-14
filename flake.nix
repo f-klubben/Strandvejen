@@ -17,10 +17,13 @@
                 system = "x86_64-linux";
                 modules = [
                     ./kiosk/module.nix
-                    stregsystemet.nixosModules.default
                     {
                         environment.systemPackages = [stregsystemet.packages."x86_64-linux".default];
                         virtualisation.vmVariant = {
+                            # import vm depends
+                            imports = [
+                                stregsystemet.nixosModules.default
+                            ];
                             # override the kiosk url
                             kiosk = {
                                 hostname = "localhost";
