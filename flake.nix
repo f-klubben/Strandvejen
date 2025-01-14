@@ -6,7 +6,7 @@
             url = "github:NixOS/nixos-hardware/master";
         };
         stregsystemet = {
-            url = "github:f-klubben/stregsystemet";
+            url = "github:Mast3rwaf1z/stregsystemet/nix-updates";
             inputs.nixpkgs.follows = "nixpkgs";
         };
     };
@@ -16,21 +16,24 @@
                 system = "x86_64-linux";
                 modules = [
                     ./kiosk/module.nix
+                    stregsystemet.nixosModules.default
                     {
+                        environment.systemPackages = [stregsystemet.packages."x86_64-linux".default];
                         virtualisation.vmVariant = {
-                            systemd.services.stregsystemet = {
-                                enable = true;
-                                serviceConfig = {
-                                    ExecStart = "${stregsystemet.packages."x86_64-linux".default}/bin/stregsystemet testserver ${stregsystemet.packages."x86_64-linux".default}/share/stregsystemet/stregsystem/fixtures/testdata.json";
-                                };
-                                wantedBy = ["default.target"];
-                            };
                             # override the kiosk url
                             kiosk = {
                                 hostname = "localhost";
-                                port = 8000;
+                                port = 80;
                                 protocol = "http";
 
+                            };
+                            # custom options from stregsystemet
+                            stregsystemet = {
+                                enable = true;
+                                port = 80;
+                                hostnames = ["localhost"];
+                                testData.enable = true;
+                                debug.debug = false;
                             };
                         };
                     }

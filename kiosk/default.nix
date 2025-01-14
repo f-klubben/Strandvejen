@@ -40,6 +40,7 @@ in {
 	    gcc
         alacritty
         htop
+        sqlite
     ];
     nix.settings.experimental-features = [ "nix-command" "flakes" ];
 

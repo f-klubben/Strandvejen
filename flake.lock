@@ -45,15 +45,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1736620428,
-        "narHash": "sha256-lAYAgi578Gqs2AJNpR+zyXFr3dDE+PztH1JNPtU/Fn8=",
-        "owner": "f-klubben",
+        "lastModified": 1736894475,
+        "narHash": "sha256-CC62KrzggwYt40e1gx4SfHGlv9VZ9E/NdJoPpFDwQ4A=",
+        "owner": "Mast3rwaf1z",
         "repo": "stregsystemet",
-        "rev": "48abe496b376d053e7a6d122180bc67930a15e52",
+        "rev": "da02e8149d371d2c73e2fbb73d03c5f994b4a189",
         "type": "github"
       },
       "original": {
-        "owner": "f-klubben",
+        "owner": "Mast3rwaf1z",
+        "ref": "nix-updates",
         "repo": "stregsystemet",
         "type": "github"
       }
