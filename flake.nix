@@ -5,12 +5,42 @@
         nixos-hardware = {
             url = "github:NixOS/nixos-hardware/master";
         };
+        stregsystemet = {
+            # TODO: change to upstream url when merged
+            url = "github:Mast3rwaf1z/stregsystemet/nix-updates";
+            inputs.nixpkgs.follows = "nixpkgs";
+        };
     };
-    outputs = { self, nixpkgs, nixos-hardware }: {
+    outputs = { self, nixpkgs, nixos-hardware, stregsystemet }: {
         nixosConfigurations = {
             kiosk = nixpkgs.lib.nixosSystem {
                 system = "x86_64-linux";
                 modules = [
+                    ./kiosk/module.nix
+                    {
+                        environment.systemPackages = [stregsystemet.packages."x86_64-linux".default];
+                        virtualisation.vmVariant = {
+                            # import vm depends
+                            imports = [
+                                stregsystemet.nixosModules.default
+                            ];
+                            # override the kiosk url
+                            kiosk = {
+                                hostname = "localhost";
+                                port = 80;
+                                protocol = "http";
+
+                            };
+                            # custom options from stregsystemet
+                            stregsystemet = {
+                                enable = true;
+                                port = 80;
+                                hostnames = ["localhost"];
+                                testData.enable = true;
+                                debug.debug = false;
+                            };
+                        };
+                    }
                     ./kiosk
                     ./systems/generic-x86_64
                 ];
