@@ -6,6 +6,7 @@
             url = "github:NixOS/nixos-hardware/master";
         };
         stregsystemet = {
+            # TODO: change to upstream url when merged
             url = "github:Mast3rwaf1z/stregsystemet/nix-updates";
             inputs.nixpkgs.follows = "nixpkgs";
         };
