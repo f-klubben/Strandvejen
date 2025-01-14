@@ -1,4 +1,4 @@
-{pkgs, ...}: let
+{config, pkgs, ...}: let
     treoutil = import ../treoutil {
         pkgs = pkgs;
     };
@@ -43,14 +43,12 @@ in {
     ];
     nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
-    programs.sway.enable = true;
-
     programs.firefox = {
         enable = true;
         policies = {
             WebsiteFilter = {
                 Block = ["<all_urls>"];
-                Exceptions = ["https://stregsystem.fklub.dk/*"];
+                Exceptions = ["${config.kiosk.protocol}://${config.kiosk.hostname}/*"];
             };
         };
     };
@@ -62,7 +60,7 @@ in {
             bindsym Mod1+Shift+q kill
             bindsym Mod1+Shift+d exec ${pkgs.dmenu}/bin/dmenu_run
             bindsym Mod1+Shift+Return exec ${pkgs.alacritty}/bin/alacritty
-            bindsym Mod1+Shift+s exec ${pkgs.firefox}/bin/firefox --kiosk --private-window https://stregsystem.fklub.dk
+            bindsym Mod1+Shift+s exec ${pkgs.firefox}/bin/firefox --kiosk --private-window ${config.kiosk.protocol}://${config.kiosk.hostname}:${builtins.toString config.kiosk.port}
 
             for_window [title="TREO UTIL"] floating enable
 
@@ -70,7 +68,7 @@ in {
 
             exec ${pkgs.feh}/bin/feh --bg-center ${bg}
 
-            exec ${pkgs.firefox}/bin/firefox --kiosk --private-window https://stregsystem.fklub.dk
+            exec ${pkgs.firefox}/bin/firefox --kiosk --private-window ${config.kiosk.protocol}://${config.kiosk.hostname}:${builtins.toString config.kiosk.port}
         '';
     };
     system.stateVersion = "24.11";

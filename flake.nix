@@ -5,12 +5,35 @@
         nixos-hardware = {
             url = "github:NixOS/nixos-hardware/master";
         };
+        stregsystemet = {
+            url = "github:f-klubben/stregsystemet";
+            inputs.nixpkgs.follows = "nixpkgs";
+        };
     };
-    outputs = { self, nixpkgs, nixos-hardware }: {
+    outputs = { self, nixpkgs, nixos-hardware, stregsystemet }: {
         nixosConfigurations = {
             kiosk = nixpkgs.lib.nixosSystem {
                 system = "x86_64-linux";
                 modules = [
+                    ./kiosk/module.nix
+                    {
+                        virtualisation.vmVariant = {
+                            systemd.services.stregsystemet = {
+                                enable = true;
+                                serviceConfig = {
+                                    ExecStart = "${stregsystemet.packages."x86_64-linux".default}/bin/stregsystemet testserver ${stregsystemet.packages."x86_64-linux".default}/share/stregsystemet/stregsystem/fixtures/testdata.json";
+                                };
+                                wantedBy = ["default.target"];
+                            };
+                            # override the kiosk url
+                            kiosk = {
+                                hostname = "localhost";
+                                port = 8000;
+                                protocol = "http";
+
+                            };
+                        };
+                    }
                     ./kiosk
                     ./systems/generic-x86_64
                 ];

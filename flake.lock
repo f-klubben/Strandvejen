@@ -34,7 +34,28 @@
     "root": {
       "inputs": {
         "nixos-hardware": "nixos-hardware",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "stregsystemet": "stregsystemet"
+      }
+    },
+    "stregsystemet": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1736620428,
+        "narHash": "sha256-lAYAgi578Gqs2AJNpR+zyXFr3dDE+PztH1JNPtU/Fn8=",
+        "owner": "f-klubben",
+        "repo": "stregsystemet",
+        "rev": "48abe496b376d053e7a6d122180bc67930a15e52",
+        "type": "github"
+      },
+      "original": {
+        "owner": "f-klubben",
+        "repo": "stregsystemet",
+        "type": "github"
       }
     }
   },
