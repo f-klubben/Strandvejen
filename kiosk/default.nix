@@ -8,6 +8,7 @@
         rev = "master";
         sha256 = "sha256-ep6/vzk7dj5InsVmaU/x2W1Lsxd4jvvwsyJzLgQJDEE=";
     }}/logo-white-circle-background.png";
+    wallpaperEditor = import ./wallpaperEditor { inherit pkgs; };
 in {
     users.users.treo = {
         isNormalUser = true;
@@ -67,7 +68,18 @@ in {
 
             bar {}
 
-            exec ${pkgs.feh}/bin/feh --bg-center ${bg}
+            exec ${pkgs.feh}/bin/feh --bg-scale ${wallpaperEditor bg "Kiosk for dummies" [
+                "Keybinds:"
+                "Alt+Shift+t: treoutil"
+                "Alt+Shift+Return: alacritty"
+                "Alt+Shift+d: dmenu_run"
+                "Alt+Shift+q: kill"
+                "Alt+Shift+s: reload kiosk"
+                ""
+                "Firefox:"
+                "Alt+left: Go back"
+                "Alt+right: Go forward"
+            ]}
 
             exec ${pkgs.firefox}/bin/firefox --kiosk --private-window ${config.kiosk.protocol}://${config.kiosk.hostname}:${builtins.toString config.kiosk.port}
         '';
