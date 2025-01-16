@@ -39,6 +39,10 @@
                                 testData.enable = true;
                                 debug.debug = false;
                             };
+                            virtualisation.resolution = {
+                                x = 1280;
+                                y = 720;
+                            };
                         };
                     }
                     ./kiosk
@@ -61,11 +65,25 @@
                     pkgs.figlet
             ];
         };
-        packages."x86_64-linux" = {
+        packages."x86_64-linux" = let
+            pkgs = import nixpkgs { system = "x86_64-linux"; };
+        in  {
             default = self.nixosConfigurations.kiosk.config.system.build.vm;
-            treoutil = import ./treoutil {
-                pkgs = import nixpkgs { system = "x86_64-linux"; };
-            };
+            treoutil = import ./treoutil { inherit pkgs; };
+            test-image = let 
+                wallpaperEditor = import ./kiosk/wallpaperEditor { inherit pkgs; };
+                image = "${pkgs.fetchFromGitHub {
+                    owner = "f-klubben";
+                    repo = "logo";
+                    rev = "master";
+                    sha256 = "sha256-ep6/vzk7dj5InsVmaU/x2W1Lsxd4jvvwsyJzLgQJDEE=";
+                }}/logo-white-circle-background.png";
+
+            in wallpaperEditor image "Kiosk for dummies" [
+                "you are dumb"
+                ":)"
+                "<3"
+            ];
         };
     };
 }
