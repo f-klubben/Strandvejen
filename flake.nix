@@ -1,5 +1,5 @@
 {
-    description = "F-klubben kiosk nix flake";
+    description = "F-klubben strandvejen nix flake";
     inputs = {
         nixpkgs.url = "nixpkgs/nixos-24.11";
         nixos-hardware = {
@@ -13,46 +13,37 @@
     };
     outputs = { self, nixpkgs, nixos-hardware, stregsystemet }: {
         nixosConfigurations = {
-            kiosk = nixpkgs.lib.nixosSystem {
+            generic = nixpkgs.lib.nixosSystem {
                 system = "x86_64-linux";
                 modules = [
-                    ./kiosk/module.nix
+                    stregsystemet.nixosModules.default
+                    ./strandvejen
                     {
+                        networking.hostName = "generic";
                         environment.systemPackages = [stregsystemet.packages."x86_64-linux".default];
-                        virtualisation.vmVariant = {
-                            # import vm depends
-                            imports = [
-                                stregsystemet.nixosModules.default
-                            ];
-                            # override the kiosk url
-                            kiosk = {
-                                hostname = "localhost";
-                                port = 80;
-                                protocol = "http";
+                        # override the kiosk url
+                        strandvejen = {
+                            hostname = "localhost";
+                            port = 80;
+                            protocol = "http";
 
-                            };
-                            # custom options from stregsystemet
-                            stregsystemet = {
-                                enable = true;
-                                port = 80;
-                                hostnames = ["localhost"];
-                                testData.enable = true;
-                                debug.debug = false;
-                            };
-                            virtualisation.resolution = {
-                                x = 1280;
-                                y = 720;
-                            };
+                        };
+                        # custom options from stregsystemet
+                        stregsystemet = {
+                            enable = true;
+                            port = 80;
+                            hostnames = ["localhost"];
+                            testData.enable = true;
+                            debug.debug = false;
                         };
                     }
-                    ./kiosk
                     ./systems/generic-x86_64
                 ];
             };
             kiosk-rpi4 = nixpkgs.lib.nixosSystem {
                 system = "aarch64-linux";
                 modules = [
-                    ./kiosk
+                    ./strandvejen
                     ./systems/raspberry-pi-4
                     nixos-hardware.nixosModules.raspberry-pi-4
                 ];
@@ -68,10 +59,10 @@
         packages."x86_64-linux" = let
             pkgs = import nixpkgs { system = "x86_64-linux"; };
         in  {
-            default = self.nixosConfigurations.kiosk.config.system.build.vm;
+            default = self.nixosConfigurations.strandvejen.config.system.build.vmWithBootLoader;
             treoutil = import ./treoutil { inherit pkgs; };
             test-image = let 
-                wallpaperEditor = import ./kiosk/wallpaperEditor { inherit pkgs; };
+                wallpaperEditor = import ./strandvejen/wallpaperEditor { inherit pkgs; };
                 image = "${pkgs.fetchFromGitHub {
                     owner = "f-klubben";
                     repo = "logo";

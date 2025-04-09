@@ -42,6 +42,9 @@ in {
         alacritty
         htop
         sqlite
+        git
+        nix
+        nixos-rebuild
     ];
     nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
@@ -50,7 +53,7 @@ in {
         policies = {
             WebsiteFilter = {
                 Block = ["<all_urls>"];
-                Exceptions = ["${config.kiosk.protocol}://${config.kiosk.hostname}/*"];
+                Exceptions = ["${config.strandvejen.protocol}://${config.strandvejen.hostname}/*"];
             };
         };
     };
@@ -62,7 +65,7 @@ in {
             bindsym Mod1+Shift+q kill
             bindsym Mod1+Shift+d exec ${pkgs.dmenu}/bin/dmenu_run
             bindsym Mod1+Shift+Return exec ${pkgs.alacritty}/bin/alacritty
-            bindsym Mod1+Shift+s exec ${pkgs.firefox}/bin/firefox --kiosk --private-window ${config.kiosk.protocol}://${config.kiosk.hostname}:${builtins.toString config.kiosk.port}
+            bindsym Mod1+Shift+s exec ${pkgs.firefox}/bin/firefox --kiosk --private-window ${config.strandvejen.protocol}://${config.strandvejen.hostname}:${builtins.toString config.strandvejen.port}
 
             for_window [title="TREO UTIL"] floating enable
 
@@ -81,8 +84,35 @@ in {
                 "Alt+right: Go forward"
             ]}
 
-            exec ${pkgs.firefox}/bin/firefox --kiosk --private-window ${config.kiosk.protocol}://${config.kiosk.hostname}:${builtins.toString config.kiosk.port}
+            exec ${pkgs.firefox}/bin/firefox --kiosk --private-window ${config.strandvejen.protocol}://${config.strandvejen.hostname}:${builtins.toString config.strandvejen.port}
         '';
     };
     system.stateVersion = "24.11";
+
+    systemd.timers.update = {
+        enable = true;
+        wantedBy = ["default.target"];
+        timerConfig = {
+            Persistent = true;
+            OnCalendar = "Sun 23:00:00";
+            Unit = "update.service";
+        };
+    };
+
+    systemd.services.update = {
+        enable = true;
+        serviceConfig = {
+            ExecStart = "${pkgs.writeScriptBin "update.sh" ''
+                set -e
+                #!${pkgs.bash}/bin/bash
+                cd /etc
+                rm -rf nixos
+                ${pkgs.git}/bin/git clone https://github.com/Mast3rwaf1z/Strandvejen -b final nixos
+                cd nixos
+                ${pkgs.nix}/bin/nix flake update
+                ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch --flake .#${config.networking.hostName}
+                reboot
+            ''}/bin/update.sh";
+        };
+    };
 }

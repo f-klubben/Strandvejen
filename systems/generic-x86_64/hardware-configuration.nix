@@ -1,3 +1,2 @@
 {
-    networking.hostName = "kiosk";
 }
