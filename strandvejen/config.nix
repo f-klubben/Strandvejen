@@ -103,8 +103,8 @@ in {
         enable = true;
         serviceConfig = {
             ExecStart = "${pkgs.writeScriptBin "update.sh" ''
-                set -e
                 #!${pkgs.bash}/bin/bash
+                set -e
                 cd /etc
                 rm -rf nixos
                 ${pkgs.git}/bin/git clone https://github.com/Mast3rwaf1z/Strandvejen -b final nixos
