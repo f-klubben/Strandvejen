@@ -93,6 +93,7 @@ def restartStrandvejen():
 print(init_message)
 
 widget:QWidget = QWidget()
+widget.setWindowTitle("TREO UTIL")
 firstLayout = QVBoxLayout()
 firstLayout.addWidget(QLabel("TREOens Utility program"))
 firstLayout.setAlignment(Qt.AlignmentFlag.AlignTop)

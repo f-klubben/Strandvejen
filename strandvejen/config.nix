@@ -61,15 +61,19 @@ in {
     services.xserver.windowManager.i3 = {
         enable = true;
         configFile = pkgs.writeText "config" ''
-            bindsym Mod1+Shift+t exec ${pkgs.writeScriptBin "script.sh" ''
+            bindsym Mod1+Shift+t exec ${pkgs.writeScriptBin "open-treoutil" ''
                 #!${pkgs.bash}/bin/bash
                 ${pkgs.procps}/bin/pkill firefox
                 if ! ${pkgs.qsudo}/bin/qsudo ${treoutil}/bin/treoutil; then
                     ${pkgs.firefox}/bin/firefox --kiosk --private-window ${config.strandvejen.protocol}://${config.strandvejen.hostname}:${builtins.toString config.strandvejen.port}
                 fi
-            ''}/bin/script.sh
+            ''}/bin/open-treoutil
             bindsym Mod1+Shift+Return exec ${pkgs.qsudo}/bin/qsudo -u treo ${pkgs.alacritty}/bin/alacritty
-            bindsym Mod1+Shift+s exec ${pkgs.qsudo}/bin/qsudo -u treo ${pkgs.firefox}/bin/firefox --kiosk --private-window ${config.strandvejen.protocol}://${config.strandvejen.hostname}:${builtins.toString config.strandvejen.port}
+            bindsym Mod1+Shift+s exec ${pkgs.writeScriptBin "open-stregsystem" ''
+                if ! [[ $(ps -ef | grep firefox | wc -l) > 1 ]]; then
+                    ${pkgs.qsudo}/bin/qsudo -u treo ${pkgs.firefox}/bin/firefox --kiosk --private-window ${config.strandvejen.protocol}://${config.strandvejen.hostname}:${builtins.toString config.strandvejen.port}
+                fi
+            ''}/bin/open-stregsystem
 
             for_window [title="TREO UTIL"] floating enable
 
@@ -111,5 +115,11 @@ in {
             (pkgs.callPackage ./plymouthTheme {})
         ];
         theme = "nixos-bgrt";
+    };
+    nix.gc = {
+        automatic = true;
+        dates = "Sun 04:00:00";
+        persistent = true;
+        options = "--delete-older-than 30d";
     };
 }
