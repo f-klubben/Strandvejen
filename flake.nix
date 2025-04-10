@@ -40,12 +40,19 @@
                     ./systems/generic-x86_64
                 ];
             };
-            kiosk-rpi4 = nixpkgs.lib.nixosSystem {
+            strandvejen-rpi4 = nixpkgs.lib.nixosSystem {
                 system = "aarch64-linux";
                 modules = [
                     ./strandvejen
                     ./systems/raspberry-pi-4
                     nixos-hardware.nixosModules.raspberry-pi-4
+                ];
+            };
+            strandvejen = nixpkgs.lib.nixosSystem {
+                system = "x86_64-linux";
+                modules = [
+                    ./strandvejen
+                    ./systems/strandvejen
                 ];
             };
         };
@@ -62,7 +69,7 @@
             default = self.nixosConfigurations.generic.config.system.build.vmWithBootLoader;
             treoutil = import ./treoutil { inherit pkgs; };
             test-image = let 
-                wallpaperEditor = import ./strandvejen/wallpaperEditor { inherit pkgs; };
+                wallpaperEditor = pkgs.callPackage ./strandvejen/wallpaperEditor {};
                 image = "${pkgs.fetchFromGitHub {
                     owner = "f-klubben";
                     repo = "logo";
@@ -70,11 +77,12 @@
                     sha256 = "sha256-ep6/vzk7dj5InsVmaU/x2W1Lsxd4jvvwsyJzLgQJDEE=";
                 }}/logo-white-circle-background.png";
 
-            in wallpaperEditor image "Kiosk for dummies" [
+            in wallpaperEditor image "Strandvejen for dummies" [
                 "you are dumb"
                 ":)"
                 "<3"
             ];
+            plymouth-theme = pkgs.callPackage ./strandvejen/plymouthTheme { mkDerivation = pkgs.stdenv.mkDerivation; };
         };
     };
 }

@@ -94,7 +94,7 @@ in {
         wantedBy = ["default.target"];
         timerConfig = {
             Persistent = true;
-            OnCalendar = "Sun 23:00:00";
+            OnCalendar = "Sat 04:00:00";
             Unit = "update.service";
         };
     };
@@ -105,14 +105,22 @@ in {
             ExecStart = "${pkgs.writeScriptBin "update.sh" ''
                 #!${pkgs.bash}/bin/bash
                 set -e
-                cd /etc
-                rm -rf nixos
-                ${pkgs.git}/bin/git clone https://github.com/Mast3rwaf1z/Strandvejen -b final nixos
-                cd nixos
+                if ! [ -d /etc/nixos ]; then
+                    ${pkgs.git}/bin/git clone https://github.com/f-klubben/Strandvejen /etc/nixos
+                fi
+                cd /etc/nixos
                 ${pkgs.nix}/bin/nix flake update
                 ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch --flake .#${config.networking.hostName}
                 reboot
             ''}/bin/update.sh";
         };
+    };
+
+    boot.plymouth = {
+        enable = true;
+        themePackages = [
+            (pkgs.callPackage ./plymouthTheme {})
+        ];
+        theme = "nixos-bgrt";
     };
 }
