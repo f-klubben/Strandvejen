@@ -59,7 +59,7 @@
         packages."x86_64-linux" = let
             pkgs = import nixpkgs { system = "x86_64-linux"; };
         in  {
-            default = self.nixosConfigurations.strandvejen.config.system.build.vmWithBootLoader;
+            default = self.nixosConfigurations.generic.config.system.build.vmWithBootLoader;
             treoutil = import ./treoutil { inherit pkgs; };
             test-image = let 
                 wallpaperEditor = import ./strandvejen/wallpaperEditor { inherit pkgs; };

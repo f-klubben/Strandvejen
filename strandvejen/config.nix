@@ -71,13 +71,13 @@ in {
 
             bar {}
 
-            exec ${pkgs.feh}/bin/feh --bg-scale ${wallpaperEditor bg "Kiosk for dummies" [
+            exec ${pkgs.feh}/bin/feh --bg-scale ${wallpaperEditor bg "Strandvejen for dummies" [
                 "Keybinds:"
                 "Alt+Shift+t: treoutil"
                 "Alt+Shift+Return: alacritty"
                 "Alt+Shift+d: dmenu_run"
                 "Alt+Shift+q: kill"
-                "Alt+Shift+s: reload kiosk"
+                "Alt+Shift+s: reload stregsystemet"
                 ""
                 "Firefox:"
                 "Alt+left: Go back"
