@@ -61,11 +61,15 @@ in {
     services.xserver.windowManager.i3 = {
         enable = true;
         configFile = pkgs.writeText "config" ''
-            bindsym Mod1+Shift+t exec ${pkgs.qsudo}/bin/qsudo ${treoutil}/bin/treoutil
-            bindsym Mod1+Shift+q kill
-            bindsym Mod1+Shift+d exec ${pkgs.dmenu}/bin/dmenu_run
-            bindsym Mod1+Shift+Return exec ${pkgs.alacritty}/bin/alacritty
-            bindsym Mod1+Shift+s exec ${pkgs.firefox}/bin/firefox --kiosk --private-window ${config.strandvejen.protocol}://${config.strandvejen.hostname}:${builtins.toString config.strandvejen.port}
+            bindsym Mod1+Shift+t exec ${pkgs.writeScriptBin "script.sh" ''
+                #!${pkgs.bash}/bin/bash
+                ${pkgs.procps}/bin/pkill firefox
+                if ! ${pkgs.qsudo}/bin/qsudo ${treoutil}/bin/treoutil; then
+                    ${pkgs.firefox}/bin/firefox --kiosk --private-window ${config.strandvejen.protocol}://${config.strandvejen.hostname}:${builtins.toString config.strandvejen.port}
+                fi
+            ''}/bin/script.sh
+            bindsym Mod1+Shift+Return exec ${pkgs.qsudo}/bin/qsudo -u treo ${pkgs.alacritty}/bin/alacritty
+            bindsym Mod1+Shift+s exec ${pkgs.qsudo}/bin/qsudo -u treo ${pkgs.firefox}/bin/firefox --kiosk --private-window ${config.strandvejen.protocol}://${config.strandvejen.hostname}:${builtins.toString config.strandvejen.port}
 
             for_window [title="TREO UTIL"] floating enable
 
@@ -74,9 +78,6 @@ in {
             exec ${pkgs.feh}/bin/feh --bg-scale ${wallpaperEditor bg "Strandvejen for dummies" [
                 "Keybinds:"
                 "Alt+Shift+t: treoutil"
-                "Alt+Shift+Return: alacritty"
-                "Alt+Shift+d: dmenu_run"
-                "Alt+Shift+q: kill"
                 "Alt+Shift+s: reload stregsystemet"
                 ""
                 "Firefox:"
@@ -101,19 +102,7 @@ in {
 
     systemd.services.update = {
         enable = true;
-        serviceConfig = {
-            ExecStart = "${pkgs.writeScriptBin "update.sh" ''
-                #!${pkgs.bash}/bin/bash
-                set -e
-                if ! [ -d /etc/nixos ]; then
-                    ${pkgs.git}/bin/git clone https://github.com/f-klubben/Strandvejen /etc/nixos
-                fi
-                cd /etc/nixos
-                ${pkgs.nix}/bin/nix flake update
-                ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch --flake .#${config.networking.hostName}
-                reboot
-            ''}/bin/update.sh";
-        };
+        serviceConfig.ExecStart = "${pkgs.bash}/bin/bash ${../treoutil/update.sh}";
     };
 
     boot.plymouth = {

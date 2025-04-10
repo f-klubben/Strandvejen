@@ -58,8 +58,8 @@ def finishedUpdate():
     print(p.exitStatus().value)
 
 def update():
-    print("Updating kiosk...")
-    statusLabel.setText("Updating kiosk...")
+    print("Updating Strandvejen...")
+    statusLabel.setText("Updating Strandvejen...")
     p = QProcess()
     p.start(sys.argv[0].replace("treoutil.py", "update.sh"))
     p.readyRead.connect(lambda: stdout_label.append(p.readAllStandardOutput().data().decode()))
@@ -75,10 +75,10 @@ def restart():
     processes.append(p)
 
 def restartKiosk():
-    print("Restarting kiosk...")
-    statusLabel.setText("Restarting kiosk...")
+    print("Restarting Strandvejen...")
+    statusLabel.setText("Restarting Strandvejen...")
     p = QProcess()
-    p.start(sys.argv[0].replace("treoutil.py", "restart-kiosk.sh"))
+    p.start(sys.argv[0].replace("treoutil.py", "restart-Strandvejen.sh"))
     p.readyRead.connect(lambda: stdout_label.append(p.readAllStandardOutput().data().decode()))
     p.readyReadStandardError.connect(lambda: stderr_label.append(p.readAllStandardError().data().decode()))
     p.finished.connect(finishedUpdate)
@@ -94,7 +94,7 @@ firstLayout.addWidget(QLabel("TREOens Utility program"))
 firstLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
 secondLayout = QHBoxLayout()
 secondLayout.addWidget(QLabel("Choose a task:"))
-updateButton = QPushButton("Update kiosk")
+updateButton = QPushButton("Update Strandvejen")
 restartButton = QPushButton("Restart system")
 closeButton = QPushButton("Close TREO UTIL")
 restartKioskButton = QPushButton("Restart Kiosk")
