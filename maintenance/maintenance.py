@@ -9,7 +9,7 @@ statusLabel = QLabel("")
 
 processes:list[QProcess] = []
 
-init_message = "F-klubben - #FRITFIT\n" + ("\n".join(check_output([sys.argv[1], "-f", "slant", "TREO"]).decode().split("\n")[:-2]) + " UTIL\n\nTREOens Utility program\n")
+init_message = "F-klubben - #FRITFIT\n" + ("\n".join(check_output(["figlet", "-f", "slant", "TREO"]).decode().split("\n")[:-2]) + " UTIL\n\nTREOens Maintenance Tool\n")
 
 class ScrollLabel(QScrollArea):
 
@@ -67,7 +67,7 @@ def update():
     statusLabel.setText("Updating Strandvejen...")
     p = QProcess()
     stderr_label.append(init_message)
-    p.start(sys.argv[0].replace("treoutil.py", "update.sh"))
+    p.start(sys.argv[0].replace("maintenance.py", "update.sh"))
     p.readyRead.connect(lambda: stdout_label.append(p.readAllStandardOutput().data().decode()))
     p.readyReadStandardError.connect(lambda: stderr_label.append(p.readAllStandardError().data().decode()))
     p.finished.connect(finishedUpdate)
@@ -84,7 +84,7 @@ def restartStrandvejen():
     print("Restarting Strandvejen...")
     statusLabel.setText("Restarting Strandvejen...")
     p = QProcess()
-    p.start(sys.argv[0].replace("treoutil.py", "restart-strandvejen.sh"))
+    p.start(sys.argv[0].replace("maintenance.py", "restart-strandvejen.sh"))
     p.readyRead.connect(lambda: stdout_label.append(p.readAllStandardOutput().data().decode()))
     p.readyReadStandardError.connect(lambda: stderr_label.append(p.readAllStandardError().data().decode()))
     p.finished.connect(finishedUpdate)
@@ -95,13 +95,13 @@ print(init_message)
 widget:QWidget = QWidget()
 widget.setWindowTitle("TREO UTIL")
 firstLayout = QVBoxLayout()
-firstLayout.addWidget(QLabel("TREOens Utility program"))
+firstLayout.addWidget(QLabel("TREOens Maintenance Tool"))
 firstLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
 secondLayout = QHBoxLayout()
 secondLayout.addWidget(QLabel("Choose a task:"))
 updateButton = QPushButton("Update Strandvejen")
 restartButton = QPushButton("Restart system")
-closeButton = QPushButton("Close TREO UTIL")
+closeButton = QPushButton("Close TREOUtil")
 restartStrandvejenButton = QPushButton("Restart Strandvejen")
 updateButton.clicked.connect(update)
 restartButton.clicked.connect(restart)

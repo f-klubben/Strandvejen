@@ -1,5 +1,5 @@
 {config, pkgs, ...}: let
-    treoutil = import ../treoutil {
+    maintenance = import ../maintenance {
         pkgs = pkgs;
     };
     bg = "${pkgs.fetchFromGitHub {
@@ -35,7 +35,7 @@ in {
     networking.networkmanager.enable = true;
 
     environment.systemPackages = with pkgs; [
-        treoutil
+        maintenance
         neovim
 	    git
 	    gcc
@@ -44,6 +44,7 @@ in {
         sqlite
         git
         nix
+        figlet
         nixos-rebuild
     ];
     nix.settings.experimental-features = [ "nix-command" "flakes" ];
@@ -61,14 +62,14 @@ in {
     services.xserver.windowManager.i3 = {
         enable = true;
         configFile = pkgs.writeText "config" ''
-            bindsym Mod1+Shift+t exec ${pkgs.writeScriptBin "open-treoutil" ''
+            bindsym Mod1+Shift+t exec ${pkgs.writeScriptBin "open-maintenance" ''
                 #!${pkgs.bash}/bin/bash
-                ${pkgs.procps}/bin/pkill firefox
-                if ! ${pkgs.qsudo}/bin/qsudo ${treoutil}/bin/treoutil; then
+                ${pkgs.procps}/bin/pkill -15 firefox
+                if ! ${pkgs.qsudo}/bin/qsudo ${maintenance}/bin/maintenance; then
                     ${pkgs.firefox}/bin/firefox --kiosk --private-window ${config.strandvejen.protocol}://${config.strandvejen.hostname}:${builtins.toString config.strandvejen.port}
                 fi
-            ''}/bin/open-treoutil
-            bindsym Mod1+Shift+Return exec ${pkgs.qsudo}/bin/qsudo -u treo ${pkgs.alacritty}/bin/alacritty
+            ''}/bin/open-maintenance
+            bindsym Mod1+Shift+Return exec ${pkgs.qsudo}/bin/qsudo sudo -u treo ${pkgs.alacritty}/bin/alacritty
             bindsym Mod1+Shift+s exec ${pkgs.writeScriptBin "open-stregsystem" ''
                 if ! [[ $(ps -ef | grep firefox | wc -l) > 1 ]]; then
                     ${pkgs.qsudo}/bin/qsudo -u treo ${pkgs.firefox}/bin/firefox --kiosk --private-window ${config.strandvejen.protocol}://${config.strandvejen.hostname}:${builtins.toString config.strandvejen.port}
@@ -79,9 +80,11 @@ in {
 
             bar {}
 
+            exec --no-startup-id xset s off -dpms
+
             exec ${pkgs.feh}/bin/feh --bg-scale ${wallpaperEditor bg "Strandvejen for dummies" [
                 "Keybinds:"
-                "Alt+Shift+t: treoutil"
+                "Alt+Shift+t: maintenance-mode"
                 "Alt+Shift+s: reload stregsystemet"
                 ""
                 "Firefox:"
@@ -106,16 +109,18 @@ in {
 
     systemd.services.update = {
         enable = true;
-        serviceConfig.ExecStart = "${pkgs.bash}/bin/bash ${../treoutil/update.sh}";
+        serviceConfig.ExecStart = "${pkgs.bash}/bin/bash ${../maintenance/update.sh}";
     };
 
-    boot.plymouth = {
-        enable = true;
-        themePackages = [
-            (pkgs.callPackage ./plymouthTheme {})
-        ];
-        theme = "nixos-bgrt";
-    };
+    # this failed to work on the live system, comment in again once its confirmed to work
+    # maybe test on rpi or something
+    #boot.plymouth = {
+    #    enable = true;
+    #    themePackages = [
+    #        (pkgs.callPackage ./plymouthTheme {})
+    #    ];
+    #    theme = "nixos-bgrt";
+    #};
     nix.gc = {
         automatic = true;
         dates = "Sun 04:00:00";

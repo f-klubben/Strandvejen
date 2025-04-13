@@ -34,29 +34,7 @@
     "root": {
       "inputs": {
         "nixos-hardware": "nixos-hardware",
-        "nixpkgs": "nixpkgs",
-        "stregsystemet": "stregsystemet"
-      }
-    },
-    "stregsystemet": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1736894475,
-        "narHash": "sha256-CC62KrzggwYt40e1gx4SfHGlv9VZ9E/NdJoPpFDwQ4A=",
-        "owner": "Mast3rwaf1z",
-        "repo": "stregsystemet",
-        "rev": "da02e8149d371d2c73e2fbb73d03c5f994b4a189",
-        "type": "github"
-      },
-      "original": {
-        "owner": "Mast3rwaf1z",
-        "ref": "nix-updates",
-        "repo": "stregsystemet",
-        "type": "github"
+        "nixpkgs": "nixpkgs"
       }
     }
   },

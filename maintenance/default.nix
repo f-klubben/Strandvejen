@@ -7,8 +7,8 @@
             cp $src/* $out/share
         '';
     };
-    py = pkgs.python3.withPackages (ps: with ps; [ pyqt6 pkgs.tmux ]);
-in pkgs.writeScriptBin "treoutil" ''
+    py = pkgs.python3.withPackages (ps: with ps; [ pyqt6 pkgs.figlet ]);
+in pkgs.writeScriptBin "maintenance" ''
     #!/usr/bin/env bash
-    ${py.interpreter} ${source}/share/treoutil.py "${pkgs.figlet}/bin/figlet"
+    ${py.interpreter} ${source}/share/maintenance.py "${pkgs.figlet}/bin/figlet"
 ''
