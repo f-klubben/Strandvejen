@@ -1,5 +1,6 @@
 from subprocess import check_output
 from PyQt6.QtCore import QProcess, Qt
+from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import QApplication, QHBoxLayout, QLabel, QPushButton, QScrollArea, QVBoxLayout, QWidget
 import sys
 
@@ -7,6 +8,8 @@ app = QApplication(sys.argv)
 statusLabel = QLabel("")
 
 processes:list[QProcess] = []
+
+init_message = "F-klubben - #FRITFIT\n" + ("\n".join(check_output(["figlet", "-f", "slant", "TREO"]).decode().split("\n")[:-2]) + " UTIL\n\nTREOens Maintenance Tool\n")
 
 class ScrollLabel(QScrollArea):
 
@@ -49,7 +52,9 @@ class ScrollLabel(QScrollArea):
         vbar.setValue(vbar.maximum())
 
 stdout_label = ScrollLabel()
+stdout_label.setFont(QFont("Monospace", 12))
 stderr_label = ScrollLabel()
+stderr_label.setFont(QFont("Monospace", 12))
 
 def finishedUpdate():
     print("Update finished!")
@@ -58,10 +63,11 @@ def finishedUpdate():
     print(p.exitStatus().value)
 
 def update():
-    print("Updating kiosk...")
-    statusLabel.setText("Updating kiosk...")
+    print("Updating Strandvejen...")
+    statusLabel.setText("Updating Strandvejen...")
     p = QProcess()
-    p.start(sys.argv[0].replace("treoutil.py", "update.sh"))
+    stderr_label.append(init_message)
+    p.start(sys.argv[0].replace("maintenance.py", "update.sh"))
     p.readyRead.connect(lambda: stdout_label.append(p.readAllStandardOutput().data().decode()))
     p.readyReadStandardError.connect(lambda: stderr_label.append(p.readAllStandardError().data().decode()))
     p.finished.connect(finishedUpdate)
@@ -74,37 +80,36 @@ def restart():
     p.start("reboot")
     processes.append(p)
 
-def restartKiosk():
-    print("Restarting kiosk...")
-    statusLabel.setText("Restarting kiosk...")
+def restartStrandvejen():
+    print("Restarting Strandvejen...")
+    statusLabel.setText("Restarting Strandvejen...")
     p = QProcess()
-    p.start(sys.argv[0].replace("treoutil.py", "restart-kiosk.sh"))
+    p.start(sys.argv[0].replace("maintenance.py", "restart-strandvejen.sh"))
     p.readyRead.connect(lambda: stdout_label.append(p.readAllStandardOutput().data().decode()))
     p.readyReadStandardError.connect(lambda: stderr_label.append(p.readAllStandardError().data().decode()))
     p.finished.connect(finishedUpdate)
     processes.append(p)
 
-print("F-klubben - #FRITFIT")
-print("\n".join(check_output([sys.argv[1], "-f", "slant", "TREO"]).decode().split("\n")[:-2]) + " UTIL\n\nTREOens Utility program")
+print(init_message)
 
-widget = QWidget()
+widget:QWidget = QWidget()
 widget.setWindowTitle("TREO UTIL")
 firstLayout = QVBoxLayout()
-firstLayout.addWidget(QLabel("TREOens Utility program"))
+firstLayout.addWidget(QLabel("TREOens Maintenance Tool"))
 firstLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
 secondLayout = QHBoxLayout()
 secondLayout.addWidget(QLabel("Choose a task:"))
-updateButton = QPushButton("Update kiosk")
+updateButton = QPushButton("Update Strandvejen")
 restartButton = QPushButton("Restart system")
-closeButton = QPushButton("Close TREO UTIL")
-restartKioskButton = QPushButton("Restart Kiosk")
+closeButton = QPushButton("Close TREOUtil")
+restartStrandvejenButton = QPushButton("Restart Strandvejen")
 updateButton.clicked.connect(update)
 restartButton.clicked.connect(restart)
 closeButton.clicked.connect(app.quit)
-restartKioskButton.clicked.connect(restartKiosk)
+restartStrandvejenButton.clicked.connect(restartStrandvejen)
 secondLayout.addWidget(updateButton)
 secondLayout.addWidget(restartButton)
-secondLayout.addWidget(restartKioskButton)
+secondLayout.addWidget(restartStrandvejenButton)
 secondLayout.addWidget(closeButton)
 firstLayout.addLayout(secondLayout)
 firstLayout.addWidget(statusLabel)
@@ -120,9 +125,10 @@ fourthLayout = QVBoxLayout()
 fourthLayout.addWidget(stdout_label)
 fourthLayout.addWidget(stderr_label)
 stdout_label.hide()
-stderr_label.hide()
+#stderr_label.hide()
 firstLayout.addLayout(fourthLayout)
 widget.setLayout(firstLayout)
+widget.setMinimumSize(200, 600)
 widget.show()
 
 exit(app.exec())

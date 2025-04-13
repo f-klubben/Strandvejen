@@ -3,7 +3,7 @@
         ./hardware-configuration.nix
     ];
 
-    networking.hostName = "kiosk-rpi4";
+    networking.hostName = "strandvejen-rpi4";
 
     boot.loader.grub.enable = false;
     boot.loader.generic-extlinux-compatible.enable = true;

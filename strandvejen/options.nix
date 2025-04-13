@@ -1,7 +1,7 @@
 {lib, ...}:
 
 {
-    options.kiosk = {
+    options.strandvejen = {
         hostname = lib.mkOption {
             type = lib.types.str;
             default = "stregsystem.fklub.dk";
