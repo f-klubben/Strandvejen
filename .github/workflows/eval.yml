@@ -19,5 +19,5 @@ jobs:
       - name: build system
         run: |
           nix eval .#packages.x86_64-linux.default
-          nix eval .#packages.x86_64-linux.treoutil
+          nix eval .#packages.x86_64-linux.maintenance
           nix eval .#packages.x86_64-linux.test-image
