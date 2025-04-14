@@ -1,19 +1,86 @@
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
+from json import dump, dumps, load, loads
+from sys import argv
+from os import path, system
+from typing import Any
+
+class Settings:
+    def __init__(self) -> None:
+        if not path.exists(argv[-1]):
+            data = {
+                "roomId":1,
+                "extraPackages":[],
+                "restart":False
+            }
+        else:
+            with open(argv[-1], "r") as file:
+                data:dict[str, Any] = load(file)
+        self.roomId:int = data["roomId"]
+        self.extraPackages:list[str] = data["extraPackages"]
+        self.restart:bool = data["restart"]
+
+    def save(self, fp = None):
+        if fp is None:
+            with open(argv[-1], "w") as file:
+                file.write(dumps({
+                    "roomId":self.roomId,
+                    "extraPackages":self.extraPackages,
+                    "restart":self.restart
+                }))
+        else:
+            fp.write(dumps({
+                "roomId":self.roomId,
+                "extraPackages":self.extraPackages,
+                "restart":self.restart
+            }).encode())
+
+settings = Settings()
+
+def rebuild():
+    system("./rebuild.sh")
+
+def restart():
+    system("reboot")
 
 class Handler(BaseHTTPRequestHandler):
-    def do_GET(self):
+    def getData(self) -> dict[str, Any]:
+        dataSize:int = int(self.headers.get("Content-Length", 0))
+        data = self.rfile.read(dataSize).decode()
+        if not data == "":
+            return loads(data)
+        else:
+            return {}
+
+
+    def do_GET(self) -> None:
         self.send_response(200)
         self.end_headers()
-        self.wfile.write("ok".encode())
-        pass
-    def do_POST(self):
+        settings.save(self.wfile)
+
+    def do_POST(self) -> None:
         match self.path:
             case "/save":
-                pass
+                data = self.getData()
+                if "roomId" in data:
+                    settings.roomId = data["roomId"]
+                if "extraPackages" in data:
+                    settings.extraPackages = data["extraPackages"]
+                if "restart" in data:
+                    settings.restart = data["restart"]
+                settings.save()
+
             case "/rebuild":
-                pass
+                rebuild()
+
             case "/restart":
-                pass
+                restart()
+            case _:
+                self.send_response(404)
+                self.end_headers()
+                return
+        self.send_response(200)
+        self.end_headers()
+
 
 if __name__ == "__main__":
     try:

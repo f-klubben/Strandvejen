@@ -119,7 +119,7 @@ in {
 
     systemd.services.update = {
         enable = true;
-        serviceConfig.ExecStart = "${pkgs.bash}/bin/bash ${../maintenance/update.sh}";
+        serviceConfig.ExecStart = "${pkgs.bash}/bin/bash ${../maintenance/rebuild.sh}";
     };
 
     # this failed to work on the live system, comment in again once its confirmed to work

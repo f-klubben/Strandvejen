@@ -16,8 +16,12 @@
         <script>
             // add logic
             function save() {
+                var postData = {}
                 fetch("http://localhost:8080/save", {
-                    method: "POST"
+                    method: "POST",
+                    body: JSON.stringify({
+                        
+                    })
                 })
                 console.log("Saved :)")
             }
@@ -35,7 +39,7 @@
             }
         </script>
         <p>Toggle Restarts</p>
-        <input id="restarts" type="checkbox">
+        <input id="restart" type="checkbox">
         <br>
 
         <p>Set Room ID</p>
