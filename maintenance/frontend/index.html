@@ -1,0 +1,54 @@
+<!DOCTYPE HTML>
+<html lang="da-dk">
+    <head>
+        <link rel="stylesheet" href="https://stregsystemet.fklub.dk/static/stregsystem/stregsystem.css">
+    </head>
+    <header>
+        <div class="left">
+            <button>Gå tilbage til stregsystemet</button>
+        </div>
+        <h1>FIT's MAINTENANCE TOOL</h1>
+        <div class="right">
+            <button>Genstart</button>
+        </div>
+    </header>
+    <body style="display: block; text-align: center;">
+        <script>
+            // add logic
+            function save() {
+                fetch("http://localhost:8080/save", {
+                    method: "POST"
+                })
+                console.log("Saved :)")
+            }
+            function rebuild() {
+                fetch("http://localhost:8080/rebuild", {
+                    method: "POST"
+                })
+                console.log("Rebuilt :)")
+            }
+            function restart() {
+                fetch("http://localhost:8080/restart", {
+                    method: "POST"
+                })
+                console.log("Restarted :)")
+            }
+        </script>
+        <p>Toggle Restarts</p>
+        <input id="restarts" type="checkbox">
+        <br>
+
+        <p>Set Room ID</p>
+        <input id="roomid" placeholder="Room ID">
+
+        <p>Extra system packages</p>
+        <textarea id="extraPackages" rows=20 cols=80 placeholder="alacritty
+htop"></textarea>
+        <br>
+
+        <p>Actions</p>
+        <button onclick="save()">Save</button>
+        <button onclick="rebuild()">Rebuild now</button>
+        <button onclick="restart()">Restart system</button>
+    </body>
+</html>

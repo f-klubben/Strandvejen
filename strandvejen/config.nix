@@ -54,7 +54,10 @@ in {
         policies = {
             WebsiteFilter = {
                 Block = ["<all_urls>"];
-                Exceptions = ["${config.strandvejen.protocol}://${config.strandvejen.hostname}/*"];
+                Exceptions = [
+                    "${config.strandvejen.protocol}://${config.strandvejen.hostname}/*"
+                    "file://${../maintenance/frontend/index.html}"
+                ];
             };
         };
     };
@@ -65,7 +68,7 @@ in {
             bindsym Mod1+Shift+t exec ${pkgs.writeScriptBin "open-maintenance" ''
                 #!${pkgs.bash}/bin/bash
                 ${pkgs.procps}/bin/pkill -15 firefox
-                if ! ${pkgs.qsudo}/bin/qsudo ${maintenance}/bin/maintenance; then
+                if ! ${pkgs.qsudo}/bin/qsudo sudo -u treo ${pkgs.firefox}/bin/firefox --kiosk --private-window ${../maintenance/frontend/index.html}; then
                     ${pkgs.firefox}/bin/firefox --kiosk --private-window ${config.strandvejen.protocol}://${config.strandvejen.hostname}:${builtins.toString config.strandvejen.port}
                 fi
             ''}/bin/open-maintenance
@@ -95,6 +98,13 @@ in {
             exec ${pkgs.firefox}/bin/firefox --kiosk --private-window ${config.strandvejen.protocol}://${config.strandvejen.hostname}:${builtins.toString config.strandvejen.port}
         '';
     };
+
+    systemd.services.maintenance = {
+        enable = true;
+        serviceConfig.ExecStart = "${maintenance}/bin/maintenance";
+        wantedBy = ["default.target"];
+    };
+
     system.stateVersion = "24.11";
 
     systemd.timers.update = {
