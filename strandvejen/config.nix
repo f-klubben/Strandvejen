@@ -1,7 +1,14 @@
 {config, pkgs, ...}: let
-    maintenance = import ../maintenance {
-        pkgs = pkgs;
-    };
+    maintenance = pkgs.callPackage ../maintenance {};
+    utils = pkgs.callPackage ../utils {};
+
+    firefoxPrefix = "${pkgs.firefox}/bin/firefox --kiosk --private-window";
+
+    stregsystemFirefox = "${firefoxPrefix} ${config.strandvejen.protocol}://${config.strandvejen.hostname}:${builtins.toString config.strandvejen.port}";
+
+    stregsystemFallback = utils.mkPrivilegedScript stregsystemFirefox;
+
+
     bg = "${pkgs.fetchFromGitHub {
         owner = "f-klubben";
         repo = "logo";
@@ -56,7 +63,7 @@ in {
                 Block = ["<all_urls>"];
                 Exceptions = [
                     "${config.strandvejen.protocol}://${config.strandvejen.hostname}/*"
-                    "file://${../maintenance/frontend/index.html}"
+                    "http://localhost/*"
                 ];
             };
         };
@@ -65,43 +72,39 @@ in {
     services.xserver.windowManager.i3 = {
         enable = true;
         configFile = pkgs.writeText "config" ''
-            bindsym Mod1+Shift+t exec ${pkgs.writeScriptBin "open-maintenance" ''
-                #!${pkgs.bash}/bin/bash
-                ${pkgs.procps}/bin/pkill -15 firefox
-                if ! ${pkgs.qsudo}/bin/qsudo sudo -u treo ${pkgs.firefox}/bin/firefox --kiosk --private-window ${../maintenance/frontend/index.html}; then
-                    ${pkgs.firefox}/bin/firefox --kiosk --private-window ${config.strandvejen.protocol}://${config.strandvejen.hostname}:${builtins.toString config.strandvejen.port}
-                fi
-            ''}/bin/open-maintenance
-            bindsym Mod1+Shift+Return exec ${pkgs.qsudo}/bin/qsudo sudo -u treo ${pkgs.alacritty}/bin/alacritty
-            bindsym Mod1+Shift+s exec ${pkgs.writeScriptBin "open-stregsystem" ''
-                if ! [[ $(ps -ef | grep firefox | wc -l) > 1 ]]; then
-                    ${pkgs.qsudo}/bin/qsudo -u treo ${pkgs.firefox}/bin/firefox --kiosk --private-window ${config.strandvejen.protocol}://${config.strandvejen.hostname}:${builtins.toString config.strandvejen.port}
-                fi
-            ''}/bin/open-stregsystem
+            bindsym Mod1+Shift+t exec ${stregsystemFallback 
+                "${firefoxPrefix} http://localhost:8080"
+            }
+
+            bindsym Mod1+Shift+Return exec ${stregsystemFallback 
+                "${pkgs.alacritty}/bin/alacritty"
+            }
+
+            bindsym Mod1+Shift+s exec ${utils.mkScript 
+                stregsystemFirefox
+            }
 
             for_window [title="TREO UTIL"] floating enable
-
-            bar {}
 
             exec --no-startup-id xset s off -dpms
 
             exec ${pkgs.feh}/bin/feh --bg-scale ${wallpaperEditor bg "Strandvejen for dummies" [
                 "Keybinds:"
-                "Alt+Shift+t: maintenance-mode"
                 "Alt+Shift+s: reload stregsystemet"
+                "Alt+Shift+t: maintenance-mode"
                 ""
                 "Firefox:"
                 "Alt+left: Go back"
                 "Alt+right: Go forward"
             ]}
 
-            exec ${pkgs.firefox}/bin/firefox --kiosk --private-window ${config.strandvejen.protocol}://${config.strandvejen.hostname}:${builtins.toString config.strandvejen.port}
+            exec ${stregsystemFirefox}
         '';
     };
 
     systemd.services.maintenance = {
         enable = true;
-        serviceConfig.ExecStart = "${maintenance}/bin/maintenance";
+        serviceConfig.ExecStart = "${maintenance}/bin/maintenance /etc/nixos/maintenance.json";
         wantedBy = ["default.target"];
     };
 

@@ -10,5 +10,5 @@
     py = pkgs.python3.withPackages (ps: with ps; [ pyqt6 pkgs.figlet ]);
 in pkgs.writeScriptBin "maintenance" ''
     #!${pkgs.bash}/bin/bash
-    ${py.interpreter} ${source}/share/api.py
+    ${py.interpreter} ${source}/share/api.py $@
 ''

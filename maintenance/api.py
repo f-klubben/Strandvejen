@@ -1,8 +1,10 @@
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
-from json import dump, dumps, load, loads
+from json import dumps, load, loads
 from sys import argv
 from os import path, system
 from typing import Any
+
+script_dir = path.dirname(argv[0])
 
 class Settings:
     def __init__(self) -> None:
@@ -37,7 +39,7 @@ class Settings:
 settings = Settings()
 
 def rebuild():
-    system("./rebuild.sh")
+    system(f"{script_dir}/rebuild.sh")
 
 def restart():
     system("reboot")
@@ -53,9 +55,16 @@ class Handler(BaseHTTPRequestHandler):
 
 
     def do_GET(self) -> None:
-        self.send_response(200)
-        self.end_headers()
-        settings.save(self.wfile)
+        match self.path:
+            case "/settings":
+                self.send_response(200)
+                self.end_headers()
+                settings.save(self.wfile)
+            case _:
+                with open(f"{script_dir}/frontend/index.html", "rb") as file:
+                    self.send_response(200)
+                    self.end_headers()
+                    self.wfile.write(file.read())
 
     def do_POST(self) -> None:
         match self.path:
