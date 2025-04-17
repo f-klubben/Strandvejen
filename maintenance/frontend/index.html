@@ -2,6 +2,24 @@
 <html lang="da-dk">
     <head>
         <link rel="stylesheet" href="https://stregsystemet.fklub.dk/static/stregsystem/stregsystem.css">
+        <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+        <meta content="utf-8" http-equiv="encoding">
+        <style>
+            #outputLog {
+                height: 400px;
+                width: 800px;
+                border: 1px solid #ccc;
+                overflow-y: auto;
+                font-family: monospace;
+                word-wrap: break-word;
+                white-space: pre-wrap;
+                text-align: left;
+                display: inline-block;
+            }
+            hr {
+                margin: 2% 20% auto 20%;
+            }
+        </style>
     </head>
     <header>
         <div class="left">
@@ -37,22 +55,71 @@
                 })
                 console.log("Restarted :)")
             }
+            function switchToTerminal() {
+                fetch("http://localhost:8080/terminal", {
+                    method: "GET"
+                })
+                console.log("Switched to terminal")
+            }
+
+            window.addEventListener('load', () => {
+                setInterval(() => {
+                    fetch("http://localhost:8080/stdout", {
+                        method: "GET"
+                    }).then(response => {
+                        response.text().then(text => {
+                            var log = document.getElementById("outputLog")
+                            log.append(text)
+                            log.scrollTop = log.scrollHeight
+                        })
+                    })
+                }, 5000) // 5 seconds
+            })
         </script>
-        <p>Toggle Restarts</p>
-        <input id="restart" type="checkbox">
-        <br>
+        <section>
+            <b>Som (nyt?) medlem af FIT kan du sætte følgende indstillinger for Strandvejen.</b><br>
+            Systemet kører NixOS, et deklarativt, funktionelt sprog.<br>
+            Det er ikke nødvendigt for dig at kunne skrive Nix kode for at maintaine systemet.<br>
+            Herunder er der en liste af indstillinger som det eksisterende NixOS system vil læse når den bygger vores default konfiguration.<br>
+        </section>
+        <hr>
 
-        <p>Set Room ID</p>
-        <input id="roomid" placeholder="Room ID">
+        <section>
+            <p>Toggle Genstart</p>
+            Denne indstilling vil få systemet til kun at genstarte fra terminalen, ellers genstarter systemet hver søndag kl. 04.00<br>
+            <input id="restart" type="checkbox">
+        </section>
+        <hr>
 
-        <p>Extra system packages</p>
-        <textarea id="extraPackages" rows=20 cols=80 placeholder="alacritty
-htop"></textarea>
-        <br>
+        <section>
+            <p>Set Room ID</p>
+            Efter anmodning fra FITminister Kresten, kan denne indstilling ændre strandvejens room ID.<br>
+            <input id="roomid" placeholder="Room ID">
+        </section>
+        <hr>
 
-        <p>Actions</p>
-        <button onclick="save()">Save</button>
-        <button onclick="rebuild()">Rebuild now</button>
-        <button onclick="restart()">Restart system</button>
+        <section>
+            <p>Extra system packages</p>
+            For at simplificere installation af system pakker på denne maskine, idet NixOS håndterer pakker anderledes end traditionelle Linux distributioner, kan du ændre i denne liste af pakker.<br>
+            <textarea id="extraPackages" rows=20 cols=80></textarea>
+        </section>
+        <hr>
+        
+        <section>
+            <p>Actions</p>
+            Når du er færdig med at pille ved strandvejens konfiguration, kan du bruge følgende knapper til at interagere med stregmaskinen's OS.<br>
+            <button onclick="save()">Save</button>
+            <button onclick="rebuild()">Rebuild now</button>
+            <button onclick="restart()">Restart system</button>
+            <button onclick="switchToTerminal()">Switch to terminal</button>
+        </section>
+        <hr>
+
+        <section>
+            <p>Output log</p>
+            <div id="outputLog">
+            </div>
+        </section>
+
     </body>
 </html>

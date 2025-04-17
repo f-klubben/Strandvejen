@@ -104,6 +104,13 @@ in {
 
     systemd.services.maintenance = {
         enable = true;
+        path = with pkgs; [
+            git
+            nix
+            nixos-rebuild
+            procps
+            alacritty
+        ];
         serviceConfig.ExecStart = "${maintenance}/bin/maintenance /etc/nixos/maintenance.json";
         wantedBy = ["default.target"];
     };

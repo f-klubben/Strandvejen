@@ -2,7 +2,7 @@
 
 set -e
 if ! [ -f /etc/nixos/flake.nix ]; then
-    git clone https://github.com/f-klubben/Strandvejen -b final /etc/nixos
+    git clone https://github.com/f-klubben/Strandvejen /etc/nixos
     cd /etc/nixos
 else
     cd /etc/nixos

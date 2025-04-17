@@ -3,8 +3,27 @@ from json import dumps, load, loads
 from sys import argv
 from os import path, system
 from typing import Any
+from subprocess import Popen, PIPE
 
 script_dir = path.dirname(argv[0])
+
+processes:list[Popen] = []
+
+def runCommand(command:str):
+    global process
+    processes.append(Popen(command, shell=True, stderr=PIPE))
+
+def readStdout() -> str:
+    toBeRemoved:list[Popen] = []
+    output = ""
+    for process in processes:
+        if process.poll() is not None:
+            toBeRemoved.append(process)
+        elif process.stderr is not None:
+            output += process.stderr.readline().decode()
+    for process in toBeRemoved:
+        processes.remove(process)
+    return output
 
 class Settings:
     def __init__(self) -> None:
@@ -39,10 +58,20 @@ class Settings:
 settings = Settings()
 
 def rebuild():
-    system(f"{script_dir}/rebuild.sh")
+    runCommand(f"{script_dir}/rebuild.sh")
 
 def restart():
-    system("reboot")
+    runCommand("reboot")
+
+def switchToTerminal():
+    killList = [
+        "firefox",
+        "qsudo",
+        "alacritty"
+    ]
+    for killTarget in killList:
+        system(f"pkill -15 {killTarget}")
+    system("DISPLAY=:0 alacritty")
 
 class Handler(BaseHTTPRequestHandler):
     def getData(self) -> dict[str, Any]:
@@ -60,6 +89,15 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_response(200)
                 self.end_headers()
                 settings.save(self.wfile)
+            case "/terminal":
+                self.send_response(200)
+                self.end_headers()
+                switchToTerminal()
+            case "/stdout":
+                self.send_response(200)
+                self.end_headers()
+                output = readStdout()
+                self.wfile.write(output.encode())
             case _:
                 with open(f"{script_dir}/frontend/index.html", "rb") as file:
                     self.send_response(200)
