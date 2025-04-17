@@ -11,6 +11,6 @@ fi
 nix flake update
 nixos-rebuild switch
 
-if jq -r ".restart" $MAINTENANCE_FILE; then
+if [[ $(jq -r ".restart" $MAINTENANCE_FILE) == "true" ]]; then
     reboot
 fi
