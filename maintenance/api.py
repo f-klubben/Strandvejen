@@ -1,40 +1,66 @@
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from json import dumps, load, loads
 from sys import argv
-from os import path, system
-from typing import Any
+from os import O_NONBLOCK, environ, path, system
+from typing import IO, Any
 from subprocess import Popen, PIPE
+from fcntl import F_GETFL, F_SETFL, fcntl
+from threading import Lock
 
 script_dir = path.dirname(argv[0])
+maintenance_file = environ["MAINTENANCE_FILE"]
 
 processes:list[Popen] = []
+output_log_lock = Lock() 
+output_log = []
 
-def runCommand(command:str):
+def runProcess(command:str):
     global process
     processes.append(Popen(command, shell=True, stderr=PIPE))
 
-def readStdout() -> str:
+def read(output:IO) -> str:
+    fd = output.fileno()
+    fl = fcntl(fd, F_GETFL)
+    fcntl(fd, F_SETFL, fl | O_NONBLOCK)
+    try:
+        text = output.read()
+        if text is None:
+            return ""
+        return text.decode()
+    except:
+        return ""
+
+def readProcess() -> str:
     toBeRemoved:list[Popen] = []
     output = ""
     for process in processes:
         if process.poll() is not None:
             toBeRemoved.append(process)
-        elif process.stderr is not None:
-            output += process.stderr.readline().decode()
+        else:
+            if process.stderr is not None:
+                output += read(process.stderr)
+            if process.stdout is not None:
+                output += read(process.stdout)
+    if output_log_lock.acquire(blocking=False): # Don't acquire if its locked
+        output_log_lock.locked_lock()
+        output += "\n".join(output_log)
+        output_log.clear()
+    output_log_lock.release()
+
     for process in toBeRemoved:
         processes.remove(process)
     return output
 
 class Settings:
     def __init__(self) -> None:
-        if not path.exists(argv[-1]):
+        if not path.exists(maintenance_file):
             data = {
                 "roomId":1,
                 "extraPackages":[],
                 "restart":False
             }
         else:
-            with open(argv[-1], "r") as file:
+            with open(maintenance_file, "r") as file:
                 data:dict[str, Any] = load(file)
         self.roomId:int = data["roomId"]
         self.extraPackages:list[str] = data["extraPackages"]
@@ -42,7 +68,7 @@ class Settings:
 
     def save(self, fp = None):
         if fp is None:
-            with open(argv[-1], "w") as file:
+            with open(maintenance_file, "w") as file:
                 file.write(dumps({
                     "roomId":self.roomId,
                     "extraPackages":self.extraPackages,
@@ -58,10 +84,10 @@ class Settings:
 settings = Settings()
 
 def rebuild():
-    runCommand(f"{script_dir}/rebuild.sh")
+    runProcess(f"{script_dir}/rebuild.sh")
 
 def restart():
-    runCommand("reboot")
+    runProcess("reboot")
 
 def switchToTerminal():
     killList = [
@@ -71,7 +97,7 @@ def switchToTerminal():
     ]
     for killTarget in killList:
         system(f"pkill -15 {killTarget}")
-    system("DISPLAY=:0 alacritty")
+    system("alacritty")
 
 class Handler(BaseHTTPRequestHandler):
     def getData(self) -> dict[str, Any]:
@@ -96,7 +122,7 @@ class Handler(BaseHTTPRequestHandler):
             case "/stdout":
                 self.send_response(200)
                 self.end_headers()
-                output = readStdout()
+                output = readProcess()
                 self.wfile.write(output.encode())
             case _:
                 with open(f"{script_dir}/frontend/index.html", "rb") as file:
@@ -115,7 +141,8 @@ class Handler(BaseHTTPRequestHandler):
                 if "restart" in data:
                     settings.restart = data["restart"]
                 settings.save()
-
+                with output_log_lock:
+                    output_log.append("Successfully wrote maintenance file\n")
             case "/rebuild":
                 rebuild()
 

@@ -14,5 +14,9 @@
             type = lib.types.str;
             default = "https";
         };
+        maintenanceFile = lib.mkOption {
+            type = lib.types.str;
+            default = "/var/maintenance.json";
+        };
     };
 }

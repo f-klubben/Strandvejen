@@ -2,9 +2,11 @@
     maintenance = pkgs.callPackage ../maintenance {};
     utils = pkgs.callPackage ../utils {};
 
+    roomId = utils.getJsonFieldRuntime ".roomId";
+
     firefoxPrefix = "${pkgs.firefox}/bin/firefox --kiosk --private-window";
 
-    stregsystemFirefox = "${firefoxPrefix} ${config.strandvejen.protocol}://${config.strandvejen.hostname}:${builtins.toString config.strandvejen.port}";
+    stregsystemFirefox = ''${firefoxPrefix} "${config.strandvejen.protocol}://${config.strandvejen.hostname}:${builtins.toString config.strandvejen.port}/${roomId}"'';
 
     stregsystemFallback = utils.mkPrivilegedScript stregsystemFirefox;
 
@@ -23,9 +25,7 @@ in {
         hashedPassword = "$y$j9T$xsEPa6je/.7ZCV6rBWqXe/$kfmSa/ZylJQ9Hcax5/yZRRjEQws13Fxduqpz7WElqFC";
 
     };
-        users.groups.treo = {};
-
-    services.openssh.enable = true;
+    users.groups.treo = {};
 
     services.xserver.enable = true;
     services.xserver.displayManager = {
@@ -45,15 +45,15 @@ in {
         maintenance
         neovim
 	    git
-	    gcc
         alacritty
         htop
-        sqlite
         git
         nix
         figlet
         nixos-rebuild
-    ];
+        jq
+    ];# + map (package: pkgs.${package}) utils.getMaintenanceFile.extraPackages;
+
     nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
     programs.firefox = {
@@ -92,6 +92,7 @@ in {
                 "Keybinds:"
                 "Alt+Shift+s: reload stregsystemet"
                 "Alt+Shift+t: maintenance-mode"
+                "Alt+Shift+Enter: terminal"
                 ""
                 "Firefox:"
                 "Alt+left: Go back"
@@ -100,6 +101,10 @@ in {
 
             exec ${stregsystemFirefox}
         '';
+    };
+
+    environment.variables = {
+        MAINTENANCE_FILE = config.strandvejen.maintenanceFile;
     };
 
     systemd.services.maintenance = {
@@ -111,7 +116,11 @@ in {
             procps
             alacritty
         ];
-        serviceConfig.ExecStart = "${maintenance}/bin/maintenance /etc/nixos/maintenance.json";
+        environment = {
+            DISPLAY=":0";
+            MAINTENANCE_FILE = config.environment.variables.MAINTENANCE_FILE;
+        };
+        serviceConfig.ExecStart = "${maintenance}/bin/maintenance";
         wantedBy = ["default.target"];
     };
 
@@ -129,18 +138,11 @@ in {
 
     systemd.services.update = {
         enable = true;
+        environment.MAINTENANCE_FILE = config.environment.variables.MAINTENANCE_FILE;
         serviceConfig.ExecStart = "${pkgs.bash}/bin/bash ${../maintenance/rebuild.sh}";
     };
 
-    # this failed to work on the live system, comment in again once its confirmed to work
-    # maybe test on rpi or something
-    #boot.plymouth = {
-    #    enable = true;
-    #    themePackages = [
-    #        (pkgs.callPackage ./plymouthTheme {})
-    #    ];
-    #    theme = "nixos-bgrt";
-    #};
+
     nix.gc = {
         automatic = true;
         dates = "Sun 04:00:00";

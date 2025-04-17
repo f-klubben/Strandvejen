@@ -1,4 +1,4 @@
-{ pkgs, ... }: let
+{ pkgs, lib, ... }: let
 
     killList = [
         "firefox"
@@ -12,9 +12,11 @@ in rec {
         for executable in ${builtins.concatStringsSep " " killList}; do
             ${pkgs.procps}/bin/pkill -15 $executable
         done
-        if ${askPassword}; then
+        ${askPassword}
+        status=$?
+        if [ $status -eq 0 ]; then
             ${target}
-        else
+        elif [ $status -eq 1 ]; then
             ${fallback}
         fi
     ''}/bin/privileged-script.sh";
@@ -28,4 +30,6 @@ in rec {
     ''}/bin/script.sh";
 
     askPassword = "${pkgs.qsudo}/bin/qsudo sudo -u treo ls";
+
+    getJsonFieldRuntime = jqQuery: ''$(cat $MAINTENANCE_FILE | jq -r "${jqQuery}")'';
 }

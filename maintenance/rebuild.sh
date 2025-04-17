@@ -10,4 +10,7 @@ else
 fi
 nix flake update
 nixos-rebuild switch
-reboot
+
+if jq -r ".restart" $MAINTENANCE_FILE; then
+    reboot
+fi

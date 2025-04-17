@@ -34,29 +34,31 @@
         <script>
             // add logic
             function save() {
-                var postData = {}
-                fetch("http://localhost:8080/save", {
+                var postData = {
+                    restart:document.getElementById("restart").checked,
+                    roomId:document.getElementById("roomId").value,
+                    extraPackages:document.getElementById("extraPackages").value
+                }
+                fetch("/save", {
                     method: "POST",
-                    body: JSON.stringify({
-                        
-                    })
+                    body: JSON.stringify(postData)
                 })
                 console.log("Saved :)")
             }
             function rebuild() {
-                fetch("http://localhost:8080/rebuild", {
+                fetch("/rebuild", {
                     method: "POST"
                 })
                 console.log("Rebuilt :)")
             }
             function restart() {
-                fetch("http://localhost:8080/restart", {
+                fetch("/restart", {
                     method: "POST"
                 })
                 console.log("Restarted :)")
             }
             function switchToTerminal() {
-                fetch("http://localhost:8080/terminal", {
+                fetch("/terminal", {
                     method: "GET"
                 })
                 console.log("Switched to terminal")
@@ -64,7 +66,7 @@
 
             window.addEventListener('load', () => {
                 setInterval(() => {
-                    fetch("http://localhost:8080/stdout", {
+                    fetch("/stdout", {
                         method: "GET"
                     }).then(response => {
                         response.text().then(text => {
@@ -94,13 +96,14 @@
         <section>
             <p>Set Room ID</p>
             Efter anmodning fra FITminister Kresten, kan denne indstilling ændre strandvejens room ID.<br>
-            <input id="roomid" placeholder="Room ID">
+            <input id="roomId" placeholder="Room ID">
         </section>
         <hr>
 
         <section>
             <p>Extra system packages</p>
             For at simplificere installation af system pakker på denne maskine, idet NixOS håndterer pakker anderledes end traditionelle Linux distributioner, kan du ændre i denne liste af pakker.<br>
+            NOTE: dette er ikke færdig implementeret og gør ikke noget endnu<br>
             <textarea id="extraPackages" rows=20 cols=80></textarea>
         </section>
         <hr>
@@ -117,9 +120,15 @@
 
         <section>
             <p>Output log</p>
-            <div id="outputLog">
-            </div>
+            <div id="outputLog"></div>
         </section>
 
     </body>
+    <script>
+        fetch("/settings").then(response => response.json().then(json => {
+            document.getElementById("roomId").value = json.roomId
+            document.getElementById("extraPackages").value = json.extraPackages
+            document.getElementById("restart").checked = json.restart
+        }))
+    </script>
 </html>
