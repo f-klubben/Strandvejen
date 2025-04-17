@@ -23,11 +23,11 @@
     </head>
     <header>
         <div class="left">
-            <button>Gå tilbage til stregsystemet</button>
+            <button onclick="switchToStregsystem()">Gå tilbage til stregsystemet</button>
         </div>
         <h1>FIT's MAINTENANCE TOOL</h1>
         <div class="right">
-            <button>Genstart</button>
+            <button onclick="window.location.reload()">Genstart</button>
         </div>
     </header>
     <body style="display: block; text-align: center;">
@@ -62,6 +62,9 @@
                     method: "GET"
                 })
                 console.log("Switched to terminal")
+            }
+            function switchToStregsystem() {
+                alert("This feature has not been completely implemented, please press Alt+Shift+s to switch...")
             }
 
             window.addEventListener('load', () => {
