@@ -7,30 +7,30 @@ from subprocess import Popen, PIPE
 from fcntl import F_GETFL, F_SETFL, fcntl
 from threading import Lock
 
-script_dir = path.dirname(argv[0])
-maintenance_file = environ["MAINTENANCE_FILE"]
+script_dir:str = path.dirname(argv[0])
+maintenance_file:str = environ["MAINTENANCE_FILE"]
 
-processes:list[Popen] = []
-output_log_lock = Lock() 
-output_log = []
+processes: list[Popen] = []
+output_log_lock: Lock = Lock() 
+output_log: list[str] = []
 
 def run_process(command: str):
     global processes
     processes.append(Popen(command, shell=True, stderr=PIPE))
 
 def read(output: IO) -> str:
-    fd = output.fileno()
-    fl = fcntl(fd, F_GETFL)
+    fd: int = output.fileno()
+    fl: int = fcntl(fd, F_GETFL)
     fcntl(fd, F_SETFL, fl | O_NONBLOCK)
 
-    text = output.read()
+    text: bytes | None = output.read()
     if text is None:
         return ""
     return text.decode()
 
 def read_process() -> str:
-    toBeRemoved:list[Popen] = []
-    output = ""
+    toBeRemoved: list[Popen] = []
+    output: str = ""
     for process in processes:
         if process.poll() is not None:
             toBeRemoved.append(process)
@@ -51,6 +51,7 @@ def read_process() -> str:
 
 class Settings:
     def __init__(self) -> None:
+        data: dict[str, Any]
         if not path.exists(maintenance_file):
             data = {
                 "room_id":1,
@@ -59,10 +60,10 @@ class Settings:
             }
         else:
             with open(maintenance_file, "r") as file:
-                data:dict[str, Any] = load(file)
-        self.room_id:int = data["room_id"]
-        self.extra_packages:list[str] = data["extra_packages"]
-        self.should_restart:bool = data["should_restart"]
+                data = load(file)
+        self.room_id: int = data["room_id"]
+        self.extra_packages: list[str] = data["extra_packages"]
+        self.should_restart: bool = data["should_restart"]
 
     def save(self, fp = None):
         if fp is None:
@@ -79,7 +80,7 @@ class Settings:
                 "should_restart":self.should_restart
             }).encode())
 
-settings = Settings()
+settings: Settings = Settings()
 
 def rebuild():
     run_process(f"{script_dir}/rebuild.sh")
@@ -88,7 +89,7 @@ def restart():
     run_process("reboot")
 
 def switch_to_terminal():
-    kill_list = [
+    kill_list: list[str] = [
         "firefox",
         "qsudo",
         "alacritty"
@@ -98,9 +99,9 @@ def switch_to_terminal():
     system("alacritty")
 
 class Handler(BaseHTTPRequestHandler):
-    def getData(self) -> dict[str, Any]:
-        data_size:int = int(self.headers.get("Content-Length", 0))
-        data = self.rfile.read(data_size).decode()
+    def get_data(self) -> dict[str, Any]:
+        data_size: int = int(self.headers.get("Content-Length", 0))
+        data:str = self.rfile.read(data_size).decode()
         if not data == "":
             return loads(data)
         else:
@@ -131,7 +132,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:
         match self.path:
             case "/save":
-                data = self.getData()
+                data: dict[str, Any] = self.get_data()
                 if "roomId" in data:
                     settings.room_id = data["room_id"]
                 if "extraPackages" in data:
