@@ -2,7 +2,7 @@
 
 set -e
 if ! [ -f /etc/nixos/flake.nix ]; then
-    git clone https://github.com/f-klubben/Strandvejen -b final /etc/nixos
+    git clone https://github.com/f-klubben/Strandvejen /etc/nixos
     cd /etc/nixos
 else
     cd /etc/nixos
@@ -10,4 +10,7 @@ else
 fi
 nix flake update
 nixos-rebuild switch
-reboot
+
+if [[ $(jq -r ".should_restart" $MAINTENANCE_FILE) == "true" ]]; then
+    reboot
+fi

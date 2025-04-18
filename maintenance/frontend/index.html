@@ -1,0 +1,137 @@
+<!DOCTYPE HTML>
+<html lang="da-dk">
+    <head>
+        <link rel="stylesheet" href="https://stregsystemet.fklub.dk/static/stregsystem/stregsystem.css">
+        <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+        <meta content="utf-8" http-equiv="encoding">
+        <style>
+            #output_log {
+                height: 400px;
+                width: 800px;
+                border: 1px solid #ccc;
+                overflow-y: auto;
+                font-family: monospace;
+                word-wrap: break-word;
+                white-space: pre-wrap;
+                text-align: left;
+                display: inline-block;
+            }
+            hr {
+                margin: 2% 20% auto 20%;
+            }
+        </style>
+    </head>
+    <header>
+        <div class="left">
+            <button onclick="switch_to_stregsystem()">Gå tilbage til stregsystemet</button>
+        </div>
+        <h1>FIT's MAINTENANCE TOOL</h1>
+        <div class="right">
+            <button onclick="window.location.reload()">Genstart</button>
+        </div>
+    </header>
+    <body style="display: block; text-align: center;">
+        <script>
+            // add logic
+            function save() {
+                var postData = {
+                    should_restart:document.getElementById("should_restart").checked,
+                    room_id:document.getElementById("room_id").value,
+                    extra_packages:document.getElementById("extra_packages").value
+                }
+                fetch("/save", {
+                    method: "POST",
+                    body: JSON.stringify(postData)
+                })
+                console.log("Saved :)")
+            }
+            function rebuild() {
+                fetch("/rebuild", {
+                    method: "POST"
+                })
+                console.log("Rebuilt :)")
+            }
+            function restart() {
+                fetch("/restart", {
+                    method: "POST"
+                })
+                console.log("Restarted :)")
+            }
+            function switch_to_terminal() {
+                fetch("/terminal", {
+                    method: "GET"
+                })
+                console.log("Switched to terminal")
+            }
+            function switch_to_stregsystem() {
+                alert("This feature has not been completely implemented, please press Alt+Shift+s to switch...")
+            }
+
+            window.addEventListener('load', () => {
+                setInterval(() => {
+                    fetch("/stdout", {
+                        method: "GET"
+                    }).then(response => {
+                        response.text().then(text => {
+                            var log = document.getElementById("output_log")
+                            log.append(text)
+                            log.scrollTop = log.scrollHeight
+                        })
+                    })
+                }, 5000) // 5 seconds
+            })
+        </script>
+        <section>
+            <b>Som (nyt?) medlem af FIT kan du sætte følgende indstillinger for Strandvejen.</b><br>
+            Systemet kører NixOS, et deklarativt, funktionelt sprog.<br>
+            Det er ikke nødvendigt for dig at kunne skrive Nix kode for at maintaine systemet.<br>
+            Herunder er der en liste af indstillinger som det eksisterende NixOS system vil læse når den bygger vores default konfiguration.<br>
+        </section>
+        <hr>
+
+        <section>
+            <p>Toggle Genstart</p>
+            Denne indstilling vil få systemet til kun at genstarte fra terminalen, ellers genstarter systemet hver søndag kl. 04.00<br>
+            <input id="should_restart" type="checkbox">
+        </section>
+        <hr>
+
+        <section>
+            <p>Set Room ID</p>
+            Efter anmodning fra FITminister Kresten, kan denne indstilling ændre strandvejens room ID.<br>
+            <input id="room_id" placeholder="Room ID">
+        </section>
+        <hr>
+
+        <section>
+            <p>Extra system packages</p>
+            For at simplificere installation af system pakker på denne maskine, idet NixOS håndterer pakker anderledes end traditionelle Linux distributioner, kan du ændre i denne liste af pakker.<br>
+            NOTE: dette er ikke færdig implementeret og gør ikke noget endnu<br>
+            <textarea id="extra_packages" rows=20 cols=80></textarea>
+        </section>
+        <hr>
+        
+        <section>
+            <p>Actions</p>
+            Når du er færdig med at pille ved strandvejens konfiguration, kan du bruge følgende knapper til at interagere med stregmaskinen's OS.<br>
+            <button onclick="save()">Save</button>
+            <button onclick="rebuild()">Rebuild now</button>
+            <button onclick="restart()">Restart system</button>
+            <button onclick="switch_to_terminal()">Switch to terminal</button>
+        </section>
+        <hr>
+
+        <section>
+            <p>Output log</p>
+            <div id="output_log"></div>
+        </section>
+
+    </body>
+    <script>
+        fetch("/settings").then(response => response.json().then(json => {
+            document.getElementById("room_id").value = json.room_id
+            document.getElementById("extra_packages").value = json.extra_packages
+            document.getElementById("should_restart").checked = json.should_restart
+        }))
+    </script>
+</html>

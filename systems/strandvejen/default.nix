@@ -20,5 +20,15 @@
         suspend.enable = false;
         hibernate.enable = false;
         hybrid-sleep.enable = false; 
-    };
+    };    
+
+    # this failed to work on the live system, comment in again once its confirmed to work
+    # maybe test on rpi or something
+    #boot.plymouth = {
+    #    enable = true;
+    #    themePackages = [
+    #        (pkgs.callPackage ../strandvejen/plymouthTheme {})
+    #    ];
+    #    theme = "nixos-bgrt";
+    #};
 }

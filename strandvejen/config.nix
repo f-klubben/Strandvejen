@@ -1,7 +1,16 @@
 {config, pkgs, ...}: let
-    maintenance = import ../maintenance {
-        pkgs = pkgs;
-    };
+    maintenance = pkgs.callPackage ../maintenance {};
+    utils = pkgs.callPackage ../utils {};
+
+    roomId = utils.getJsonFieldRuntime ".room_id";
+
+    firefoxPrefix = "${pkgs.firefox}/bin/firefox --kiosk --private-window";
+
+    stregsystemFirefox = ''${firefoxPrefix} "${config.strandvejen.protocol}://${config.strandvejen.hostname}:${builtins.toString config.strandvejen.port}/${roomId}"'';
+
+    stregsystemFallback = utils.mkPrivilegedScript stregsystemFirefox;
+
+
     bg = "${pkgs.fetchFromGitHub {
         owner = "f-klubben";
         repo = "logo";
@@ -16,9 +25,7 @@ in {
         hashedPassword = "$y$j9T$xsEPa6je/.7ZCV6rBWqXe/$kfmSa/ZylJQ9Hcax5/yZRRjEQws13Fxduqpz7WElqFC";
 
     };
-        users.groups.treo = {};
-
-    services.openssh.enable = true;
+    users.groups.treo = {};
 
     services.xserver.enable = true;
     services.xserver.displayManager = {
@@ -38,15 +45,17 @@ in {
         maintenance
         neovim
 	    git
-	    gcc
         alacritty
         htop
-        sqlite
         git
         nix
         figlet
         nixos-rebuild
+        jq
     ];
+    # This is needed if we ever get the extra_packages setting to work, currently the settings are read at runtime.
+    # + map (package: pkgs.${package}) utils.getMaintenanceFile.extraPackages;
+
     nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
     programs.firefox = {
@@ -54,7 +63,10 @@ in {
         policies = {
             WebsiteFilter = {
                 Block = ["<all_urls>"];
-                Exceptions = ["${config.strandvejen.protocol}://${config.strandvejen.hostname}/*"];
+                Exceptions = [
+                    "${config.strandvejen.protocol}://${config.strandvejen.hostname}/*"
+                    "http://localhost/*"
+                ];
             };
         };
     };
@@ -62,39 +74,58 @@ in {
     services.xserver.windowManager.i3 = {
         enable = true;
         configFile = pkgs.writeText "config" ''
-            bindsym Mod1+Shift+t exec ${pkgs.writeScriptBin "open-maintenance" ''
-                #!${pkgs.bash}/bin/bash
-                ${pkgs.procps}/bin/pkill -15 firefox
-                if ! ${pkgs.qsudo}/bin/qsudo ${maintenance}/bin/maintenance; then
-                    ${pkgs.firefox}/bin/firefox --kiosk --private-window ${config.strandvejen.protocol}://${config.strandvejen.hostname}:${builtins.toString config.strandvejen.port}
-                fi
-            ''}/bin/open-maintenance
-            bindsym Mod1+Shift+Return exec ${pkgs.qsudo}/bin/qsudo sudo -u treo ${pkgs.alacritty}/bin/alacritty
-            bindsym Mod1+Shift+s exec ${pkgs.writeScriptBin "open-stregsystem" ''
-                if ! [[ $(ps -ef | grep firefox | wc -l) > 1 ]]; then
-                    ${pkgs.qsudo}/bin/qsudo -u treo ${pkgs.firefox}/bin/firefox --kiosk --private-window ${config.strandvejen.protocol}://${config.strandvejen.hostname}:${builtins.toString config.strandvejen.port}
-                fi
-            ''}/bin/open-stregsystem
+            bindsym Mod1+Shift+t exec ${stregsystemFallback 
+                "${firefoxPrefix} http://localhost:8080"
+            }
+
+            bindsym Mod1+Shift+Return exec ${stregsystemFallback 
+                "${pkgs.alacritty}/bin/alacritty"
+            }
+
+            bindsym Mod1+Shift+s exec ${utils.mkScript 
+                stregsystemFirefox
+            }
 
             for_window [title="TREO UTIL"] floating enable
-
-            bar {}
 
             exec --no-startup-id xset s off -dpms
 
             exec ${pkgs.feh}/bin/feh --bg-scale ${wallpaperEditor bg "Strandvejen for dummies" [
                 "Keybinds:"
-                "Alt+Shift+t: maintenance-mode"
                 "Alt+Shift+s: reload stregsystemet"
+                "Alt+Shift+t: maintenance-mode"
+                "Alt+Shift+Enter: terminal"
                 ""
                 "Firefox:"
                 "Alt+left: Go back"
                 "Alt+right: Go forward"
             ]}
 
-            exec ${pkgs.firefox}/bin/firefox --kiosk --private-window ${config.strandvejen.protocol}://${config.strandvejen.hostname}:${builtins.toString config.strandvejen.port}
+            exec ${stregsystemFirefox}
         '';
     };
+
+    environment.variables = {
+        MAINTENANCE_FILE = config.strandvejen.maintenanceFile;
+    };
+
+    systemd.services.maintenance = {
+        enable = true;
+        path = with pkgs; [
+            git
+            nix
+            nixos-rebuild
+            procps
+            alacritty
+        ];
+        environment = {
+            DISPLAY=":0";
+            MAINTENANCE_FILE = config.environment.variables.MAINTENANCE_FILE;
+        };
+        serviceConfig.ExecStart = "${maintenance}/bin/maintenance";
+        wantedBy = ["default.target"];
+    };
+
     system.stateVersion = "24.11";
 
     systemd.timers.update = {
@@ -109,18 +140,11 @@ in {
 
     systemd.services.update = {
         enable = true;
-        serviceConfig.ExecStart = "${pkgs.bash}/bin/bash ${../maintenance/update.sh}";
+        environment.MAINTENANCE_FILE = config.environment.variables.MAINTENANCE_FILE;
+        serviceConfig.ExecStart = "${pkgs.bash}/bin/bash ${../maintenance/rebuild.sh}";
     };
 
-    # this failed to work on the live system, comment in again once its confirmed to work
-    # maybe test on rpi or something
-    #boot.plymouth = {
-    #    enable = true;
-    #    themePackages = [
-    #        (pkgs.callPackage ./plymouthTheme {})
-    #    ];
-    #    theme = "nixos-bgrt";
-    #};
+
     nix.gc = {
         automatic = true;
         dates = "Sun 04:00:00";
