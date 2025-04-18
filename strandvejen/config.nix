@@ -2,7 +2,7 @@
     maintenance = pkgs.callPackage ../maintenance {};
     utils = pkgs.callPackage ../utils {};
 
-    roomId = utils.getJsonFieldRuntime ".roomId";
+    roomId = utils.getJsonFieldRuntime ".room_id";
 
     firefoxPrefix = "${pkgs.firefox}/bin/firefox --kiosk --private-window";
 
@@ -52,7 +52,9 @@ in {
         figlet
         nixos-rebuild
         jq
-    ];# + map (package: pkgs.${package}) utils.getMaintenanceFile.extraPackages;
+    ];
+    # This is needed if we ever get the extra_packages setting to work, currently the settings are read at runtime.
+    # + map (package: pkgs.${package}) utils.getMaintenanceFile.extraPackages;
 
     nix.settings.experimental-features = [ "nix-command" "flakes" ];
 

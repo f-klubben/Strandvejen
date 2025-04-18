@@ -14,23 +14,21 @@ processes:list[Popen] = []
 output_log_lock = Lock() 
 output_log = []
 
-def runProcess(command:str):
-    global process
+def run_process(command: str):
+    global processes
     processes.append(Popen(command, shell=True, stderr=PIPE))
 
-def read(output:IO) -> str:
+def read(output: IO) -> str:
     fd = output.fileno()
     fl = fcntl(fd, F_GETFL)
     fcntl(fd, F_SETFL, fl | O_NONBLOCK)
-    try:
-        text = output.read()
-        if text is None:
-            return ""
-        return text.decode()
-    except:
-        return ""
 
-def readProcess() -> str:
+    text = output.read()
+    if text is None:
+        return ""
+    return text.decode()
+
+def read_process() -> str:
     toBeRemoved:list[Popen] = []
     output = ""
     for process in processes:
@@ -55,54 +53,54 @@ class Settings:
     def __init__(self) -> None:
         if not path.exists(maintenance_file):
             data = {
-                "roomId":1,
-                "extraPackages":[],
-                "restart":False
+                "room_id":1,
+                "extra_packages":[],
+                "should_restart":False
             }
         else:
             with open(maintenance_file, "r") as file:
                 data:dict[str, Any] = load(file)
-        self.roomId:int = data["roomId"]
-        self.extraPackages:list[str] = data["extraPackages"]
-        self.restart:bool = data["restart"]
+        self.room_id:int = data["room_id"]
+        self.extra_packages:list[str] = data["extra_packages"]
+        self.should_restart:bool = data["should_restart"]
 
     def save(self, fp = None):
         if fp is None:
             with open(maintenance_file, "w") as file:
                 file.write(dumps({
-                    "roomId":self.roomId,
-                    "extraPackages":self.extraPackages,
-                    "restart":self.restart
+                    "room_id":self.room_id,
+                    "extra_packages":self.extra_packages,
+                    "should_restart":self.should_restart
                 }))
         else:
             fp.write(dumps({
-                "roomId":self.roomId,
-                "extraPackages":self.extraPackages,
-                "restart":self.restart
+                "room_id":self.room_id,
+                "extra_packages":self.extra_packages,
+                "should_restart":self.should_restart
             }).encode())
 
 settings = Settings()
 
 def rebuild():
-    runProcess(f"{script_dir}/rebuild.sh")
+    run_process(f"{script_dir}/rebuild.sh")
 
 def restart():
-    runProcess("reboot")
+    run_process("reboot")
 
-def switchToTerminal():
-    killList = [
+def switch_to_terminal():
+    kill_list = [
         "firefox",
         "qsudo",
         "alacritty"
     ]
-    for killTarget in killList:
-        system(f"pkill -15 {killTarget}")
+    for kill_target in kill_list:
+        system(f"pkill -15 {kill_target}")
     system("alacritty")
 
 class Handler(BaseHTTPRequestHandler):
     def getData(self) -> dict[str, Any]:
-        dataSize:int = int(self.headers.get("Content-Length", 0))
-        data = self.rfile.read(dataSize).decode()
+        data_size:int = int(self.headers.get("Content-Length", 0))
+        data = self.rfile.read(data_size).decode()
         if not data == "":
             return loads(data)
         else:
@@ -118,11 +116,11 @@ class Handler(BaseHTTPRequestHandler):
             case "/terminal":
                 self.send_response(200)
                 self.end_headers()
-                switchToTerminal()
+                switch_to_terminal()
             case "/stdout":
                 self.send_response(200)
                 self.end_headers()
-                output = readProcess()
+                output = read_process()
                 self.wfile.write(output.encode())
             case _:
                 with open(f"{script_dir}/frontend/index.html", "rb") as file:
@@ -135,11 +133,11 @@ class Handler(BaseHTTPRequestHandler):
             case "/save":
                 data = self.getData()
                 if "roomId" in data:
-                    settings.roomId = data["roomId"]
+                    settings.room_id = data["room_id"]
                 if "extraPackages" in data:
-                    settings.extraPackages = data["extraPackages"]
+                    settings.extra_packages = data["extra_packages"]
                 if "restart" in data:
-                    settings.restart = data["restart"]
+                    settings.should_restart = data["should_restart"]
                 settings.save()
                 with output_log_lock:
                     output_log.append("Successfully wrote maintenance file\n")

@@ -5,7 +5,7 @@
         <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
         <meta content="utf-8" http-equiv="encoding">
         <style>
-            #outputLog {
+            #output_log {
                 height: 400px;
                 width: 800px;
                 border: 1px solid #ccc;
@@ -23,7 +23,7 @@
     </head>
     <header>
         <div class="left">
-            <button onclick="switchToStregsystem()">Gå tilbage til stregsystemet</button>
+            <button onclick="switch_to_stregsystem()">Gå tilbage til stregsystemet</button>
         </div>
         <h1>FIT's MAINTENANCE TOOL</h1>
         <div class="right">
@@ -35,9 +35,9 @@
             // add logic
             function save() {
                 var postData = {
-                    restart:document.getElementById("restart").checked,
-                    roomId:document.getElementById("roomId").value,
-                    extraPackages:document.getElementById("extraPackages").value
+                    should_restart:document.getElementById("should_restart").checked,
+                    room_id:document.getElementById("room_id").value,
+                    extra_packages:document.getElementById("extra_packages").value
                 }
                 fetch("/save", {
                     method: "POST",
@@ -57,13 +57,13 @@
                 })
                 console.log("Restarted :)")
             }
-            function switchToTerminal() {
+            function switch_to_terminal() {
                 fetch("/terminal", {
                     method: "GET"
                 })
                 console.log("Switched to terminal")
             }
-            function switchToStregsystem() {
+            function switch_to_stregsystem() {
                 alert("This feature has not been completely implemented, please press Alt+Shift+s to switch...")
             }
 
@@ -73,7 +73,7 @@
                         method: "GET"
                     }).then(response => {
                         response.text().then(text => {
-                            var log = document.getElementById("outputLog")
+                            var log = document.getElementById("output_log")
                             log.append(text)
                             log.scrollTop = log.scrollHeight
                         })
@@ -92,14 +92,14 @@
         <section>
             <p>Toggle Genstart</p>
             Denne indstilling vil få systemet til kun at genstarte fra terminalen, ellers genstarter systemet hver søndag kl. 04.00<br>
-            <input id="restart" type="checkbox">
+            <input id="should_restart" type="checkbox">
         </section>
         <hr>
 
         <section>
             <p>Set Room ID</p>
             Efter anmodning fra FITminister Kresten, kan denne indstilling ændre strandvejens room ID.<br>
-            <input id="roomId" placeholder="Room ID">
+            <input id="room_id" placeholder="Room ID">
         </section>
         <hr>
 
@@ -107,7 +107,7 @@
             <p>Extra system packages</p>
             For at simplificere installation af system pakker på denne maskine, idet NixOS håndterer pakker anderledes end traditionelle Linux distributioner, kan du ændre i denne liste af pakker.<br>
             NOTE: dette er ikke færdig implementeret og gør ikke noget endnu<br>
-            <textarea id="extraPackages" rows=20 cols=80></textarea>
+            <textarea id="extra_packages" rows=20 cols=80></textarea>
         </section>
         <hr>
         
@@ -117,21 +117,21 @@
             <button onclick="save()">Save</button>
             <button onclick="rebuild()">Rebuild now</button>
             <button onclick="restart()">Restart system</button>
-            <button onclick="switchToTerminal()">Switch to terminal</button>
+            <button onclick="switch_to_terminal()">Switch to terminal</button>
         </section>
         <hr>
 
         <section>
             <p>Output log</p>
-            <div id="outputLog"></div>
+            <div id="output_log"></div>
         </section>
 
     </body>
     <script>
         fetch("/settings").then(response => response.json().then(json => {
-            document.getElementById("roomId").value = json.roomId
-            document.getElementById("extraPackages").value = json.extraPackages
-            document.getElementById("restart").checked = json.restart
+            document.getElementById("room_id").value = json.room_id
+            document.getElementById("extra_packages").value = json.extra_packages
+            document.getElementById("should_restart").checked = json.should_restart
         }))
     </script>
 </html>
