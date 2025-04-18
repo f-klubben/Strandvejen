@@ -133,11 +133,11 @@ class Handler(BaseHTTPRequestHandler):
         match self.path:
             case "/save":
                 data: dict[str, Any] = self.get_data()
-                if "roomId" in data:
+                if "room_id" in data:
                     settings.room_id = data["room_id"]
-                if "extraPackages" in data:
+                if "extra_packages" in data:
                     settings.extra_packages = data["extra_packages"]
-                if "restart" in data:
+                if "should_restart" in data:
                     settings.should_restart = data["should_restart"]
                 settings.save()
                 with output_log_lock:
