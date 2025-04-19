@@ -1,5 +1,17 @@
 {
   "nodes": {
+    "maintenance": {
+      "locked": {
+        "lastModified": 1745023898,
+        "narHash": "sha256-8pp9MhugL/ianYX6uoRtXrQ0TTf+EO+HWMNdUi5gAP0=",
+        "path": "/var/maintenance",
+        "type": "path"
+      },
+      "original": {
+        "path": "/var/maintenance",
+        "type": "path"
+      }
+    },
     "nixos-hardware": {
       "locked": {
         "lastModified": 1735388221,
@@ -33,6 +45,7 @@
     },
     "root": {
       "inputs": {
+        "maintenance": "maintenance",
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs"
       }
