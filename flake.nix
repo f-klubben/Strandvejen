@@ -5,24 +5,25 @@
         nixos-hardware.url = "github:NixOS/nixos-hardware/master";
         # local flake for settings, this should be initialized with the script at ./scripts/initialize.sh
         maintenance.url = "path:/var/maintenance";
+        maintenance.inputs.nixpkgs.follows = "nixpkgs";
     };
     outputs = { self, nixpkgs, nixos-hardware, maintenance }: {
         nixosConfigurations = {
-            strandvejen-rpi4 = nixpkgs.lib.nixosSystem {
+            strandvejen-rpi4 = nixpkgs.lib.nixosSystem rec {
                 system = "aarch64-linux";
                 modules = [
                     ./strandvejen
-                    maintenance.nixosModules.settings
+                    (maintenance.nixosModules.settings system)
                     ./systems/raspberry-pi-4
                     nixos-hardware.nixosModules.raspberry-pi-4
                 ];
             };
-            strandvejen = nixpkgs.lib.nixosSystem {
+            strandvejen = nixpkgs.lib.nixosSystem rec {
                 system = "x86_64-linux";
                 modules = [
                     ./strandvejen
                     ./systems/strandvejen
-                    maintenance.nixosModules.settings
+                    (maintenance.nixosModules.settings system)
                 ];
             };
         };
