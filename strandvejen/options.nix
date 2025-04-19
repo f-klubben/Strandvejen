@@ -2,21 +2,33 @@
 
 {
     options.strandvejen = {
-        hostname = lib.mkOption {
+        address = lib.mkOption {
             type = lib.types.str;
-            default = "stregsystem.fklub.dk";
+            default = "https://stregsystem.fklub.dk";
         };
-        port = lib.mkOption {
+        room_id = lib.mkOption {
             type = lib.types.int;
-            default = 443;
+            default = 1;
         };
-        protocol = lib.mkOption {
-            type = lib.types.str;
-            default = "https";
+        should_restart = lib.mkOption {
+            type = lib.types.bool;
+            default = false;
         };
-        maintenanceFile = lib.mkOption {
+        extra_packages = lib.mkOption {
+            type = lib.types.listOf lib.types.str;
+            default = [];
+        };
+        local_build = lib.mkOption {
+            type = lib.types.bool;
+            default = false;
+        };
+        rebuild_time = lib.mkOption {
             type = lib.types.str;
-            default = "/var/maintenance.json";
+            default = "Sat 04:00";
+        };
+        garbage_collection_time = lib.mkOption {
+            type = lib.types.str;
+            default = "Sun 04:00";
         };
     };
 }
