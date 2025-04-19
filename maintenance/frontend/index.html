@@ -34,10 +34,13 @@
         <script>
             // add logic
             function save() {
+                var extra_packages = document.getElementById("extra_packages").value
                 var postData = {
-                    should_restart:document.getElementById("should_restart").checked,
-                    room_id:document.getElementById("room_id").value,
-                    extra_packages:document.getElementById("extra_packages").value
+                    strandvejen:{
+                        should_restart:document.getElementById("should_restart").checked,
+                        room_id:document.getElementById("room_id").value,
+                        extra_packages: extra_packages == "" ? [] : extra_packages.split()
+                    }
                 }
                 fetch("/save", {
                     method: "POST",
@@ -120,7 +123,6 @@
         <section>
             <p>Extra system packages</p>
             For at simplificere installation af system pakker på denne maskine, idet NixOS håndterer pakker anderledes end traditionelle Linux distributioner, kan du ændre i denne liste af pakker.<br>
-            NOTE: dette er ikke færdig implementeret og gør ikke noget endnu<br>
             <textarea id="extra_packages" rows=20 cols=80></textarea>
         </section>
         <hr>
@@ -143,9 +145,9 @@
     </body>
     <script>
         fetch("/settings").then(response => response.json().then(json => {
-            document.getElementById("room_id").value = json.room_id
-            document.getElementById("extra_packages").value = json.extra_packages
-            document.getElementById("should_restart").checked = json.should_restart
+            document.getElementById("room_id").value = json.strandvejen.room_id
+            document.getElementById("extra_packages").value = json.strandvejen.extra_packages
+            document.getElementById("should_restart").checked = json.strandvejen.should_restart
         }))
     </script>
 </html>

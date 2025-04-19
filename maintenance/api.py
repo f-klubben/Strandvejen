@@ -1,14 +1,13 @@
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from json import dumps, load, loads
 from sys import argv
-from os import O_NONBLOCK, environ, path, system
+from os import O_NONBLOCK, path, system
 from typing import IO, Any
 from subprocess import Popen, PIPE
 from fcntl import F_GETFL, F_SETFL, fcntl
 from threading import Lock
 
-script_dir: str = path.dirname(argv[0])
-maintenance_file: str = environ["MAINTENANCE_FILE"]
+script_dir:str = path.dirname(argv[0])
 
 processes: list[Popen] = []
 output_log_lock: Lock = Lock()
@@ -55,49 +54,25 @@ def read_process() -> str:
 
 class Settings:
     def __init__(self) -> None:
-        data: dict[str, Any]
-        if not path.exists(maintenance_file):
-            data = {"room_id": 1, "extra_packages": [], "should_restart": False}
-        else:
-            with open(maintenance_file, "r") as file:
-                data = load(file)
-        self.room_id: int = data["room_id"]
-        self.extra_packages: list[str] = data["extra_packages"]
-        self.should_restart: bool = data["should_restart"]
+        self.data: dict[str, Any]
+        with open("/var/maintenance/settings.json", "r") as file:
+            self.data = load(file)
 
     def save(self, fp=None):
         if fp is None:
-            with open(maintenance_file, "w") as file:
-                file.write(
-                    dumps(
-                        {
-                            "room_id": self.room_id,
-                            "extra_packages": self.extra_packages,
-                            "should_restart": self.should_restart,
-                        }
-                    )
-                )
+            with open("/var/maintenance/settings.json", "w") as file:
+                file.write(dumps(self.data))
         else:
-            fp.write(
-                dumps(
-                    {
-                        "room_id": self.room_id,
-                        "extra_packages": self.extra_packages,
-                        "should_restart": self.should_restart,
-                    }
-                ).encode()
-            )
-
+            fp.write(dumps(self.data).encode())
 
 settings: Settings = Settings()
 
-
 def rebuild():
-    run_process(f"{script_dir}/rebuild.sh")
+    system(f"systemctl start update.service")
 
 
 def restart():
-    run_process("reboot")
+    system("reboot")
 
 
 def switch_to_terminal():
@@ -141,12 +116,8 @@ class Handler(BaseHTTPRequestHandler):
         match self.path:
             case "/save":
                 data: dict[str, Any] = self.get_data()
-                if "room_id" in data:
-                    settings.room_id = data["room_id"]
-                if "extra_packages" in data:
-                    settings.extra_packages = data["extra_packages"]
-                if "should_restart" in data:
-                    settings.should_restart = data["should_restart"]
+                for key in data:
+                    settings.data[key] = data[key]
                 settings.save()
                 with output_log_lock:
                     output_log.append("Successfully wrote maintenance file\n")

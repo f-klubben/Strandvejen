@@ -2,16 +2,17 @@
     description = "F-klubben strandvejen nix flake";
     inputs = {
         nixpkgs.url = "nixpkgs/nixos-24.11";
-        nixos-hardware = {
-            url = "github:NixOS/nixos-hardware/master";
-        };
+        nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+        # local flake for settings, this should be initialized with the script at ./scripts/initialize.sh
+        maintenance.url = "path:/var/maintenance";
     };
-    outputs = { self, nixpkgs, nixos-hardware }: {
+    outputs = { self, nixpkgs, nixos-hardware, maintenance }: {
         nixosConfigurations = {
             strandvejen-rpi4 = nixpkgs.lib.nixosSystem {
                 system = "aarch64-linux";
                 modules = [
                     ./strandvejen
+                    maintenance.nixosModules.settings
                     ./systems/raspberry-pi-4
                     nixos-hardware.nixosModules.raspberry-pi-4
                 ];
@@ -20,6 +21,7 @@
                 system = "x86_64-linux";
                 modules = [
                     ./strandvejen
+                    #maintenance.nixosModules.settings
                     ./systems/strandvejen
                 ];
             };

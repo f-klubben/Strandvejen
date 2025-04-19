@@ -1,12 +1,11 @@
-{config, pkgs, ...}: let
+{ config, lib, pkgs, ... }: let
+
     maintenance = pkgs.callPackage ../maintenance {};
     utils = pkgs.callPackage ../utils {};
 
-    roomId = utils.getJsonFieldRuntime ".room_id";
-
     firefoxPrefix = "${pkgs.firefox}/bin/firefox --kiosk --private-window";
 
-    stregsystemFirefox = ''${firefoxPrefix} "${config.strandvejen.protocol}://${config.strandvejen.hostname}:${builtins.toString config.strandvejen.port}/${roomId}"'';
+    stregsystemFirefox = ''${firefoxPrefix} "${config.strandvejen.address}/${builtins.toString config.strandvejen.room_id}"'';
 
     stregsystemFallback = utils.mkPrivilegedScript stregsystemFirefox;
 
@@ -18,6 +17,7 @@
         sha256 = "sha256-ep6/vzk7dj5InsVmaU/x2W1Lsxd4jvvwsyJzLgQJDEE=";
     }}/logo-white-circle-background.png";
     wallpaperEditor = import ./wallpaperEditor { inherit pkgs; };
+
 in {
     users.users.treo = {
         isNormalUser = true;
@@ -52,9 +52,7 @@ in {
         figlet
         nixos-rebuild
         jq
-    ];
-    # This is needed if we ever get the extra_packages setting to work, currently the settings are read at runtime.
-    # + map (package: pkgs.${package}) utils.getMaintenanceFile.extraPackages;
+    ] ++ (map (package: pkgs.${package}) config.strandvejen.extra_packages);
 
     nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
@@ -64,7 +62,7 @@ in {
             WebsiteFilter = {
                 Block = ["<all_urls>"];
                 Exceptions = [
-                    "${config.strandvejen.protocol}://${config.strandvejen.hostname}/*"
+                    "${config.strandvejen.address}/*"
                     "http://localhost/*"
                 ];
             };
@@ -86,8 +84,6 @@ in {
                 stregsystemFirefox
             }
 
-            for_window [title="TREO UTIL"] floating enable
-
             exec --no-startup-id xset s off -dpms
 
             exec ${pkgs.feh}/bin/feh --bg-scale ${wallpaperEditor bg "Strandvejen for dummies" [
@@ -105,10 +101,6 @@ in {
         '';
     };
 
-    environment.variables = {
-        MAINTENANCE_FILE = config.strandvejen.maintenanceFile;
-    };
-
     systemd.services.maintenance = {
         enable = true;
         path = with pkgs; [
@@ -120,7 +112,6 @@ in {
         ];
         environment = {
             DISPLAY=":0";
-            MAINTENANCE_FILE = config.environment.variables.MAINTENANCE_FILE;
         };
         serviceConfig.ExecStart = "${maintenance}/bin/maintenance";
         wantedBy = ["default.target"];
@@ -133,21 +124,42 @@ in {
         wantedBy = ["default.target"];
         timerConfig = {
             Persistent = true;
-            OnCalendar = "Sat 04:00:00";
-            Unit = "update.service";
+            OnCalendar = config.strandvejen.rebuild_time;
+            Unit = "rebuild.service";
         };
     };
 
     systemd.services.update = {
         enable = true;
-        environment.MAINTENANCE_FILE = config.environment.variables.MAINTENANCE_FILE;
-        serviceConfig.ExecStart = "${pkgs.bash}/bin/bash ${../maintenance/rebuild.sh}";
+        serviceConfig.ExecStart = "${pkgs.writeScriptBin "update" ''
+            #!${pkgs.bash}/bin/bash
+            set -e
+            ${if config.strandvejen.local_build then ''
+                cd /etc/nixos
+                ${pkgs.git}/bin/git pull
+                ${pkgs.nix}/bin/nix flake update
+                ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch
+            '' else ''
+                ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch --flake github:f-klubben/Strandvejen
+            ''}
+            ${if config.strandvejen.should_restart then "reboot" else ""}
+        ''}/bin/update";
     };
 
+    systemd.services.ensure_maintenance_flake = {
+        enable = true;
+        serviceConfig.ExecStart = "${pkgs.writeScriptBin "ensure_maintenance_flake" ''
+            #!${pkgs.bash}/bin/bash
+            if ! [ -f /var/maintenance/flake.nix ]; then
+                ${pkgs.bash}/bin/bash ${../scripts/initialize.sh}
+            fi
+        ''}/bin/ensure_maintenance_flake";
+        wantedBy = ["default.target"];
+    };
 
     nix.gc = {
         automatic = true;
-        dates = "Sun 04:00:00";
+        dates = config.strandvejen.garbage_collection_time;
         persistent = true;
         options = "--delete-older-than 30d";
     };
