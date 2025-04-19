@@ -21,7 +21,7 @@
                 system = "x86_64-linux";
                 modules = [
                     ./strandvejen
-                    #maintenance.nixosModules.settings
+                    maintenance.nixosModules.settings
                     ./systems/strandvejen
                 ];
             };
