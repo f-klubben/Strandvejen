@@ -1,9 +1,14 @@
 {
   "nodes": {
     "maintenance": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
       "locked": {
-        "lastModified": 1745023898,
-        "narHash": "sha256-8pp9MhugL/ianYX6uoRtXrQ0TTf+EO+HWMNdUi5gAP0=",
+        "lastModified": 1745026464,
+        "narHash": "sha256-Z0oIb7pVWKxjcpieSquehdzB0OzP+wbUfSiM03arQlU=",
         "path": "/var/maintenance",
         "type": "path"
       },

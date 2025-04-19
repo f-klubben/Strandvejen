@@ -20,8 +20,9 @@ EOF
 
 cat << EOF > /var/maintenance/flake.nix
 {
+    inputs.nixpkgs.url = "";
     outputs = inputs: {
-        nixosModules.settings = { pkgs, ... }: pkgs.lib.strings.fromJSON (builtins.readFile ./settings.json );
+        nixosModules.settings = system: (import inputs.nixpkgs { inherit system; }).lib.strings.fromJSON (builtins.readFile ./settings.json );
     };
 }
 EOF
