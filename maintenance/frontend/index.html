@@ -67,6 +67,8 @@
                 alert("This feature has not been completely implemented, please press Alt+Shift+s to switch...")
             }
 
+            var targetDate = new Date(Date.now() + 10*60000)
+
             window.addEventListener('load', () => {
                 setInterval(() => {
                     fetch("/stdout", {
@@ -79,6 +81,19 @@
                         })
                     })
                 }, 5000) // 5 seconds
+                setInterval(() => {
+                    var now = Date.now()
+                    var distance = targetDate - now
+                    var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))
+                    var seconds = Math.floor((distance % (1000 * 60)) / 1000)
+                    console.log("minutes: " + minutes)
+                    console.log("seconds: " + seconds)
+                    document.getElementById("minutes").innerHTML = minutes
+                    document.getElementById("seconds").innerHTML = seconds
+                    if (distance < 0) {
+                        document.location.href = "https://stregsystemet.fklub.dk"
+                    }
+                }, 1000)
             })
         </script>
         <section>
@@ -86,6 +101,7 @@
             Systemet kører NixOS, et deklarativt, funktionelt sprog.<br>
             Det er ikke nødvendigt for dig at kunne skrive Nix kode for at maintaine systemet.<br>
             Herunder er der en liste af indstillinger som det eksisterende NixOS system vil læse når den bygger vores default konfiguration.<br>
+            Systemet går tilbage til stregsystemet om <span id="minutes"></span> minutter og <span id="seconds"></span> sekunder
         </section>
         <hr>
 
