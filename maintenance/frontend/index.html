@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html lang="da-dk">
     <head>
-        <link rel="stylesheet" href="https://stregsystemet.fklub.dk/static/stregsystem/stregsystem.css">
+        <link rel="stylesheet" href="https://stregsystem.fklub.dk/static/stregsystem/stregsystem.css">
         <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
         <meta content="utf-8" http-equiv="encoding">
         <style>
@@ -64,7 +64,7 @@
                 console.log("Switched to terminal")
             }
             function switch_to_stregsystem() {
-                alert("This feature has not been completely implemented, please press Alt+Shift+s to switch...")
+                document.location.href = "https://stregsystem.fklub.dk"
             }
 
             var targetDate = new Date(Date.now() + 10*60000)
@@ -89,7 +89,7 @@
                     document.getElementById("minutes").innerHTML = minutes
                     document.getElementById("seconds").innerHTML = seconds
                     if (distance < 0) {
-                        document.location.href = "https://stregsystemet.fklub.dk"
+                        switch_to_stregsystem()
                     }
                 }, 1000)
             })
