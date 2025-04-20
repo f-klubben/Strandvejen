@@ -14,4 +14,4 @@ jobs:
     - name: Black Code Formatter
       uses: lgeiger/black-action@v1.0.1
       with:
-        args: --check --target-version py312 --line-length 120 --skip-string-normalization *.py
+        args: --check --target-version py312 --line-length 120 --skip-string-normalization ./maintenance/api.py
