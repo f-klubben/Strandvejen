@@ -4,7 +4,6 @@ from sys import argv
 from os import path, system
 from typing import Any
 from threading import Lock
-from time import time
 from datetime import datetime
 from subprocess import check_output
 
@@ -13,17 +12,17 @@ script_dir:str = path.dirname(argv[0])
 services: list[str] = [
     "rebuild.service"
 ]
-last_read: float = time()
+last_read: datetime = datetime.now()
 output_log_lock: Lock = Lock() 
 output_log: list[str] = []
 
 def read_services() -> str:
     global last_read
     output = ""
-    timestamp = datetime.fromtimestamp(last_read).strftime("%Y-%m-%d %H:%M:%S")
+    timestamp = last_read.strftime("%Y-%m-%d %H:%M:%S")
     for service in services:
         output += check_output(["journalctl", "-u", service, "--since", timestamp]).decode().replace("-- No entries --\n", "")
-    last_read = time()
+    last_read = datetime.now()
 
     if output_log_lock.acquire(blocking=False): # Don't acquire if its locked
         output_log_lock.locked_lock()
