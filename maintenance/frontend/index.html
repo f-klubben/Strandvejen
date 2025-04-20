@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html lang="da-dk">
     <head>
-        <link rel="stylesheet" href="https://stregsystem.fklub.dk/static/stregsystem/stregsystem.css">
+        <link rel="stylesheet" href="NIX_PLEASE_CHANGE_ME/static/stregsystem/stregsystem.css">
         <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
         <meta content="utf-8" http-equiv="encoding">
         <style>
@@ -37,9 +37,14 @@
                 var extra_packages = document.getElementById("extra_packages").value
                 var postData = {
                     strandvejen:{
-                        should_restart:document.getElementById("should_restart").checked,
-                        room_id:document.getElementById("room_id").value,
-                        extra_packages: extra_packages == "" ? [] : extra_packages.split()
+                        should_restart: document.getElementById("should_restart").checked,
+                        local_build: document.getElementById("local_build").checked,
+                        room_id: parseInt(document.getElementById("room_id").value),
+                        address: document.getElementById("address").value,
+                        port: parseInt(document.getElementById("port").value),
+                        extra_packages: extra_packages == "" ? [] : extra_packages.split(),
+                        rebuild_time: document.getElementById("rebuild_time").value,
+                        garbage_collection_time: document.getElementById("garbage_collection_time").value
                     }
                 }
                 fetch("/save", {
@@ -67,7 +72,7 @@
                 console.log("Switched to terminal")
             }
             function switch_to_stregsystem() {
-                document.location.href = "https://stregsystem.fklub.dk"
+                document.location.href = "NIX_PLEASE_CHANGE_ME"
             }
 
             var targetDate = new Date(Date.now() + 10*60000)
@@ -114,6 +119,34 @@
         <hr>
 
         <section>
+            <p>Lokalt build</p>
+            Vigtigt: kun brug denne indstilling hvis det er absolut nødvendigt at build fra en lokal konfiguration.
+            Ellers burde vi altid build fra git<br>
+            <input id="local_build" type="checkbox">
+        </section>
+        <hr>
+
+        <section>
+            <p>Ugentlige build tider</p>
+            Denne indstilling sætter hvilke tider rebuilds og garbage collection skal ske.<br>
+            NOTE: dette vil først træde i kræft efter du gennemfører et build (nixos-rebuild switch) eller ved tryk på knappen herunder<br>
+            <input id="rebuild_time" placeholder="Sat 04:00:00">
+            <input id="garbage_collection_time" placeholder="Sun 04:00:00">
+        </section>
+        <hr>
+
+        <section>
+            <p>Set address</p>
+            Denne indstilling bør kun ændres hvis systemet flyttes, eller hvis det køres i udviklings tilstand<br>
+            Grundet indstillinger i firefox's format, bliver porten nødt til at blive sat separat<br>
+            <input id="address" placeholder="address">
+            <input id="port" placeholder="port">
+        </section>
+        <hr>
+
+
+
+        <section>
             <p>Set Room ID</p>
             Efter anmodning fra FITminister Kresten, kan denne indstilling ændre strandvejens room ID.<br>
             <input id="room_id" placeholder="Room ID">
@@ -148,6 +181,11 @@
             document.getElementById("room_id").value = json.strandvejen.room_id
             document.getElementById("extra_packages").value = json.strandvejen.extra_packages
             document.getElementById("should_restart").checked = json.strandvejen.should_restart
+            document.getElementById("local_build").checked = json.strandvejen.local_build
+            document.getElementById("address").value = json.strandvejen.address
+            document.getElementById("port").value = json.strandvejen.port
+            document.getElementById("rebuild_time").value = json.strandvejen.rebuild_time
+            document.getElementById("garbage_collection_time").value = json.strandvejen.garbage_collection_time
         }))
     </script>
 </html>

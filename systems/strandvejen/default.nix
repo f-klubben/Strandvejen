@@ -27,7 +27,7 @@
     #boot.plymouth = {
     #    enable = true;
     #    themePackages = [
-    #        (pkgs.callPackage ../strandvejen/plymouthTheme {})
+    #        (pkgs.callPackage ../../utils/plymouthTheme {})
     #    ];
     #    theme = "nixos-bgrt";
     #};
