@@ -1,52 +1,38 @@
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from json import dumps, load, loads
 from sys import argv
-from os import O_NONBLOCK, environ, path, system
-from typing import IO, Any
-from subprocess import Popen, PIPE
-from fcntl import F_GETFL, F_SETFL, fcntl
+from os import path, system
+from typing import Any
 from threading import Lock
+from time import time
+from datetime import datetime
+from subprocess import check_output
 
 script_dir:str = path.dirname(argv[0])
 
-processes: list[Popen] = []
+services: list[str] = [
+    "rebuild.service"
+]
+last_read: float = time()
 output_log_lock: Lock = Lock() 
 output_log: list[str] = []
 
-def run_process(command: str):
-    global processes
-    processes.append(Popen(command, shell=True, stderr=PIPE))
+def read_services() -> str:
+    global last_read
+    output = ""
+    timestamp = datetime.fromtimestamp(last_read).strftime("%Y-%m-%d %H:%M:%S")
+    for service in services:
+        output += check_output(["journalctl", "-u", service, "--since", timestamp]).decode().replace("-- No entries --\n", "")
+    last_read = time()
 
-def read(output: IO) -> str:
-    fd: int = output.fileno()
-    fl: int = fcntl(fd, F_GETFL)
-    fcntl(fd, F_SETFL, fl | O_NONBLOCK)
-
-    text: bytes | None = output.read()
-    if text is None:
-        return ""
-    return text.decode()
-
-def read_process() -> str:
-    toBeRemoved: list[Popen] = []
-    output: str = ""
-    for process in processes:
-        if process.poll() is not None:
-            toBeRemoved.append(process)
-        else:
-            if process.stderr is not None:
-                output += read(process.stderr)
-            if process.stdout is not None:
-                output += read(process.stdout)
     if output_log_lock.acquire(blocking=False): # Don't acquire if its locked
         output_log_lock.locked_lock()
         output += "\n".join(output_log)
         output_log.clear()
     output_log_lock.release()
 
-    for process in toBeRemoved:
-        processes.remove(process)
     return output
+
 
 class Settings:
     def __init__(self) -> None:
@@ -63,11 +49,11 @@ class Settings:
 
 settings: Settings = Settings()
 
-def update():
-    run_process(f"systemctl start update.service")
+def rebuild():
+    system(f"systemctl start rebuild.service")
 
 def restart():
-    run_process("reboot")
+    system("reboot")
 
 def switch_to_terminal():
     kill_list: list[str] = [
@@ -102,7 +88,7 @@ class Handler(BaseHTTPRequestHandler):
             case "/stdout":
                 self.send_response(200)
                 self.end_headers()
-                output = read_process()
+                output: str = read_services()
                 self.wfile.write(output.encode())
             case _:
                 with open(f"{script_dir}/frontend/index.html", "rb") as file:
@@ -119,8 +105,8 @@ class Handler(BaseHTTPRequestHandler):
                 settings.save()
                 with output_log_lock:
                     output_log.append("Successfully wrote maintenance file\n")
-            case "/update":
-                update()
+            case "/rebuild":
+                rebuild()
 
             case "/restart":
                 restart()
