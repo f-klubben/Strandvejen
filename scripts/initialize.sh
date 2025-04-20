@@ -8,12 +8,13 @@ cat << EOF > /var/maintenance/settings.json
 {
     "strandvejen": {
         "address":"https://stregsystem.fklub.dk",
+        "port":443,
         "room_id":10,
         "extra_packages":[],
         "should_restart":false,
         "local_build":false,
-        "rebuild_time":"Sat 04:00",
-        "garbage_collection_time":"Sun 04:00"
+        "rebuild_time":"Sat 04:00:00",
+        "garbage_collection_time":"Sun 04:00:00"
     }
 }
 EOF
@@ -26,4 +27,3 @@ cat << EOF > /var/maintenance/flake.nix
     };
 }
 EOF
-

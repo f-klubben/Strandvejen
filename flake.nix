@@ -41,7 +41,8 @@
             pkgs = import nixpkgs { system = "x86_64-linux"; };
         in  {
             default = self.nixosConfigurations.strandvejen.config.system.build.vmWithBootLoader;
-            maintenance = import ./maintenance { inherit pkgs; };
+            maintenance = import ./maintenance { inherit pkgs; address = "http://10.0.0.1:8080"; };
+            maintenance-frontend = import ./maintenance/frontend { inherit pkgs; address = "http://10.0.0.1:8080"; };
             test-image = let 
                 wallpaperEditor = pkgs.callPackage ./strandvejen/wallpaperEditor {};
                 image = "${pkgs.fetchFromGitHub {
