@@ -7,24 +7,25 @@ from threading import Lock
 from datetime import datetime
 from subprocess import check_output
 
-script_dir:str = path.dirname(argv[0])
+script_dir: str = path.dirname(argv[0])
 
-services: list[str] = [
-    "rebuild.service"
-]
+services: list[str] = ["rebuild.service"]
 last_read: datetime = datetime.now()
-output_log_lock: Lock = Lock() 
+output_log_lock: Lock = Lock()
 output_log: list[str] = []
+
 
 def read_services() -> str:
     global last_read
     output = ""
     timestamp = last_read.strftime("%Y-%m-%d %H:%M:%S")
     for service in services:
-        output += check_output(["journalctl", "-u", service, "--since", timestamp]).decode().replace("-- No entries --\n", "")
+        output += (
+            check_output(["journalctl", "-u", service, "--since", timestamp]).decode().replace("-- No entries --\n", "")
+        )
     last_read = datetime.now()
 
-    if output_log_lock.acquire(blocking=False): # Don't acquire if its locked
+    if output_log_lock.acquire(blocking=False):  # Don't acquire if its locked
         output_log_lock.locked_lock()
         output += "\n".join(output_log)
         output_log.clear()
@@ -46,13 +47,17 @@ class Settings:
         else:
             fp.write(dumps(self.data).encode())
 
+
 settings: Settings = Settings()
+
 
 def rebuild():
     system(f"systemctl start rebuild.service")
 
+
 def restart():
     system("reboot")
+
 
 def switch_to_terminal():
     kill_list: list[str] = ["firefox", "qsudo", "alacritty"]
