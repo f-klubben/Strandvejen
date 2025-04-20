@@ -44,7 +44,7 @@
             maintenance = import ./maintenance { inherit pkgs; address = "http://10.0.0.1:8080"; };
             maintenance-frontend = import ./maintenance/frontend { inherit pkgs; address = "http://10.0.0.1:8080"; };
             test-image = let 
-                wallpaperEditor = pkgs.callPackage ./strandvejen/wallpaperEditor {};
+                wallpaperEditor = pkgs.callPackage ./strandvejen/config/wallpaperEditor {};
                 image = "${pkgs.fetchFromGitHub {
                     owner = "f-klubben";
                     repo = "logo";
@@ -57,7 +57,7 @@
                 ":)"
                 "<3"
             ];
-            plymouth-theme = pkgs.callPackage ./strandvejen/plymouthTheme { mkDerivation = pkgs.stdenv.mkDerivation; };
+            plymouth-theme = pkgs.callPackage ./utils/plymouthTheme { mkDerivation = pkgs.stdenv.mkDerivation; };
         };
     };
 }
