@@ -20,6 +20,8 @@ jobs:
       - name: Nix cache
         uses: DeterminateSystems/flakehub-cache-action@main
       - name: Init local flake
-        run: sudo bash scripts/initialize.sh
+        run: |
+          sudo bash scripts/initialize.sh
+          nix flake update maintenance
       - name: build system
         run: nix eval .#${{ matrix.output }}
