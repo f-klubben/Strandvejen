@@ -42,13 +42,35 @@ in {
                 ${if config.strandvejen.local_build then ''
                     cd /etc/nixos
                     ${pkgs.git}/bin/git pull
-                    ${pkgs.nix}/bin/nix flake update
+                    ${pkgs.nix}/bin/nix flake update nixpkgs nixos-hardware
                     ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch
                 '' else ''
                     ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch --flake github:f-klubben/Strandvejen
                 ''}
                 ${if config.strandvejen.should_restart then "reboot" else ""}
             ''}/bin/rebuild";
+        };
+    };
+
+    systemd.services.refresh = {
+        enable = true;
+        path = with pkgs; [
+            git
+        ];
+        serviceConfig = {
+            StandardError = "journal";
+            ExecStart = "${pkgs.writeScriptBin "refresh" ''
+                #!${pkgs.bash}/bin/bash
+                set -e
+                ${if config.strandvejen.local_build then ''
+                    cd /etc/nixos
+                    ${pkgs.git}/bin/git pull
+                    ${pkgs.nix}/bin/nix flake update maintenance
+                    ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch
+                '' else ''
+                    ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch --flake github:f-klubben/Strandvejen
+                ''}
+            ''}";
         };
     };
 

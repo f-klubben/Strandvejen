@@ -54,6 +54,9 @@ settings: Settings = Settings()
 def rebuild():
     system(f"systemctl start rebuild.service")
 
+def refresh():
+    system(f"systemctl start refresh.service")
+
 
 def restart():
     system("reboot")
@@ -107,6 +110,8 @@ class Handler(BaseHTTPRequestHandler):
                     output_log.append("Successfully wrote maintenance file\n")
             case "/rebuild":
                 rebuild()
+            case "/refresh":
+                refresh()
 
             case "/restart":
                 restart()
