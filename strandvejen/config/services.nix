@@ -94,7 +94,7 @@ in {
                     #!${pkgs.bash}/bin/bash
                     export DISPLAY=:0
                     ${pkgs.i3}/bin/i3 reload
-                ''}
+                ''}/bin/reload-i3
             ''}/bin/refresh";
         };
     };
