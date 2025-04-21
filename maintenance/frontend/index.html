@@ -65,6 +65,12 @@
                 })
                 console.log("Restarted :)")
             }
+            function update() {
+                fetch("/update", {
+                    method: "POST"
+                })
+                console.log("Updated :)")
+            }
             function refresh() {
                 fetch("/refresh", {
                     method: "POST"
@@ -171,6 +177,7 @@
             Når du er færdig med at pille ved strandvejens konfiguration, kan du bruge følgende knapper til at interagere med stregmaskinen's OS.<br>
             <button onclick="save()">Save</button>
             <button onclick="refresh()">Refresh settings</button>
+            <button onclick="update()">Update now</button>
             <button onclick="rebuild()">Rebuild now</button>
             <button onclick="restart()">Restart system</button>
             <button onclick="switch_to_terminal()">Switch to terminal</button>
