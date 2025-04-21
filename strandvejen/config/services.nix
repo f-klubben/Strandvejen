@@ -90,7 +90,11 @@ in {
                 '' else ''
                     ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch --flake github:f-klubben/Strandvejen
                 ''}
-                DISPLAY=:0 ${pkgs.i3}/bin/i3 reload
+                sudo -u treo ${pkgs.writeScriptBin "reload-i3" ''
+                    #!${pkgs.bash}/bin/bash
+                    export DISPLAY=:0
+                    ${pkgs.i3}/bin/i3 reload
+                ''}
             ''}/bin/refresh";
         };
     };
