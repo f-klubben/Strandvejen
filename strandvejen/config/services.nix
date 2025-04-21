@@ -34,19 +34,22 @@ in {
         path = with pkgs; [
             git
         ];
-        serviceConfig.ExecStart = "${pkgs.writeScriptBin "rebuild" ''
-            #!${pkgs.bash}/bin/bash
-            set -e
-            ${if config.strandvejen.local_build then ''
-                cd /etc/nixos
-                ${pkgs.git}/bin/git pull
-                ${pkgs.nix}/bin/nix flake update
-                ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch
-            '' else ''
-                ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch --flake github:f-klubben/Strandvejen
-            ''}
-            ${if config.strandvejen.should_restart then "reboot" else ""}
-        ''}/bin/rebuild";
+        serviceConfig = {
+            StandardError = "journal";
+            ExecStart = "${pkgs.writeScriptBin "rebuild" ''
+                #!${pkgs.bash}/bin/bash
+                set -e
+                ${if config.strandvejen.local_build then ''
+                    cd /etc/nixos
+                    ${pkgs.git}/bin/git pull
+                    ${pkgs.nix}/bin/nix flake update
+                    ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch
+                '' else ''
+                    ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch --flake github:f-klubben/Strandvejen
+                ''}
+                ${if config.strandvejen.should_restart then "reboot" else ""}
+            ''}/bin/rebuild";
+        };
     };
 
     systemd.services.ensure_maintenance_flake = {
