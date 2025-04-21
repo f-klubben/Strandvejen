@@ -29,7 +29,7 @@ in {
         };
     };
 
-    systemd.services.rebuild = {
+    systemd.services.update = {
         enable = true;
         path = with pkgs; [
             git
@@ -48,6 +48,26 @@ in {
                     ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch --flake github:f-klubben/Strandvejen
                 ''}
                 ${if config.strandvejen.should_restart then "reboot" else ""}
+            ''}/bin/rebuild";
+        };
+    };
+
+    systemd.services.rebuild = {
+        enable = true;
+        path = with pkgs; [
+            git
+        ];
+        serviceConfig = {
+            StandardError = "journal";
+            ExecStart = "${pkgs.writeScriptBin "rebuild" ''
+                #!${pkgs.bash}/bin/bash
+                set -e
+                ${if config.strandvejen.local_build then ''
+                    cd /etc/nixos
+                    ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch
+                '' else ''
+                    ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch --flake github:f-klubben/Strandvejen
+                ''}
             ''}/bin/rebuild";
         };
     };
@@ -73,6 +93,7 @@ in {
             ''}";
         };
     };
+
 
     systemd.services.ensure_maintenance_flake = {
         enable = true;
