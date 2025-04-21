@@ -31,6 +31,9 @@ in {
 
     systemd.services.rebuild = {
         enable = true;
+        path = with pkgs; [
+            git
+        ];
         serviceConfig.ExecStart = "${pkgs.writeScriptBin "rebuild" ''
             #!${pkgs.bash}/bin/bash
             set -e
