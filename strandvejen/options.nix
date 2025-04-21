@@ -24,7 +24,7 @@
         };
         local_build = lib.mkOption {
             type = lib.types.bool;
-            default = false;
+            default = true;
         };
         rebuild_time = lib.mkOption {
             type = lib.types.str;
