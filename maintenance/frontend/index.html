@@ -32,8 +32,13 @@
     </header>
     <body style="display: block; text-align: center;">
         <script>
+            function init_timeout() {
+                return new Date(Date.now() + 10 * 60000)
+            }
+            var targetDate = init_timeout()
             // add logic
             function save() {
+                targetDate = init_timeout()
                 var extra_packages = document.getElementById("extra_packages").value
                 var postData = {
                     strandvejen:{
@@ -54,24 +59,28 @@
                 console.log("Saved :)")
             }
             function rebuild() {
+                targetDate = init_timeout()
                 fetch("/rebuild", {
                     method: "POST"
                 })
                 console.log("Rebuilt :)")
             }
             function restart() {
+                targetDate = init_timeout()
                 fetch("/restart", {
                     method: "POST"
                 })
                 console.log("Restarted :)")
             }
             function update() {
+                targetDate = init_timeout()
                 fetch("/update", {
                     method: "POST"
                 })
                 console.log("Updated :)")
             }
             function refresh() {
+                targetDate = init_timeout()
                 fetch("/refresh", {
                     method: "POST"
                 })
@@ -95,7 +104,6 @@
                 }
             }
 
-            var targetDate = new Date(Date.now() + 10*60000)
 
             window.addEventListener('load', () => {
                 setInterval(() => {
