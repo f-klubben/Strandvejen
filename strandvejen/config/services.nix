@@ -36,7 +36,7 @@ in {
         ];
         serviceConfig = {
             StandardError = "journal";
-            ExecStart = "${pkgs.writeScriptBin "rebuild" ''
+            ExecStart = "${pkgs.writeScriptBin "update" ''
                 #!${pkgs.bash}/bin/bash
                 set -e
                 ${if config.strandvejen.local_build then ''
@@ -48,7 +48,7 @@ in {
                     ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch --flake github:f-klubben/Strandvejen
                 ''}
                 ${if config.strandvejen.should_restart then "reboot" else ""}
-            ''}/bin/rebuild";
+            ''}/bin/update";
         };
     };
 
@@ -90,7 +90,7 @@ in {
                 '' else ''
                     ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch --flake github:f-klubben/Strandvejen
                 ''}
-            ''}";
+            ''}/bin/rebuild";
         };
     };
 
