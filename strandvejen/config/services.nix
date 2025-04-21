@@ -90,7 +90,7 @@ in {
                 '' else ''
                     ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch --flake github:f-klubben/Strandvejen
                 ''}
-            ''}/bin/rebuild";
+            ''}/bin/refresh";
         };
     };
 
