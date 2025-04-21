@@ -19,13 +19,13 @@ in {
     };
 
 
-    systemd.timers.rebuild = {
+    systemd.timers.update = {
         enable = true;
         wantedBy = ["default.target"];
         timerConfig = {
             Persistent = true;
             OnCalendar = config.strandvejen.rebuild_time;
-            Unit = "rebuild.service";
+            Unit = "update.service";
         };
     };
 
