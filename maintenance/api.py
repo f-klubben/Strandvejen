@@ -97,8 +97,12 @@ class Handler(BaseHTTPRequestHandler):
                 start("rebuild")
             case "/update":
                 start("update")
-            case "/refresh":
-                start("refresh")
+            case "/refresh-settings":
+                start("refresh-settings")
+            case "/refresh-inputs":
+                start("refresh-inputs")
+            case "/pull":
+                start("pull")
             case "/terminal":
                 start("terminal")
 

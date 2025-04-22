@@ -64,12 +64,16 @@ in {
                 set -e
                 cd /etc/nixos
                 ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch
-                ''}
+                ${pkgs.sudo}/bin/sudo -u treo ${pkgs.writeScriptBin "reload-i3" ''
+                    #!${pkgs.bash}/bin/bash
+                    export DISPLAY=:0
+                    ${pkgs.i3}/bin/i3 reload
+                ''}/bin/reload-i3
             ''}/bin/rebuild";
         };
     };
 
-    systemd.services.refresh = {
+    systemd.services.refresh-settings = {
         enable = true;
         path = with pkgs; [
             git
@@ -80,14 +84,38 @@ in {
                 #!${pkgs.bash}/bin/bash
                 set -e
                 cd /etc/nixos
-                ${pkgs.git}/bin/git pull
                 ${pkgs.nix}/bin/nix flake update maintenance
-                ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch
-                ${pkgs.sudo}/bin/sudo -u treo ${pkgs.writeScriptBin "reload-i3" ''
-                    #!${pkgs.bash}/bin/bash
-                    export DISPLAY=:0
-                    ${pkgs.i3}/bin/i3 reload
-                ''}/bin/reload-i3
+            ''}/bin/refresh";
+        };
+    };
+
+    systemd.services.pull = {
+        enable = true;
+        path = with pkgs; [
+            git
+        ];
+        serviceConfig = {
+            ExecStart = "${pkgs.writeScriptBin "pull" ''
+                #!${pkgs.bash}/bin/bash
+                set -e
+                cd /etc/nixos
+                ${pkgs.git}/bin/git pull
+            ''}/bin/pull";
+        };
+    };
+
+    systemd.services.refresh-inputs = {
+        enable = true;
+        path = with pkgs; [
+            git
+        ];
+        serviceConfig = {
+            StandardError = "journal";
+            ExecStart = "${pkgs.writeScriptBin "refresh" ''
+                #!${pkgs.bash}/bin/bash
+                set -e
+                cd /etc/nixos
+                ${pkgs.nix}/bin/nix flake update nixos-hardware nixpkgs
             ''}/bin/refresh";
         };
     };

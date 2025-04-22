@@ -55,47 +55,16 @@
                     method: "POST",
                     body: JSON.stringify(postData)
                 })
-                console.log("Saved :)")
             }
-            function rebuild() {
+            function do_post(target) {
                 targetDate = init_timeout()
-                fetch("/rebuild", {
+                fetch(target, {
                     method: "POST"
                 })
-                console.log("Rebuilt :)")
             }
-            function restart() {
+            function do_get(target) {
                 targetDate = init_timeout()
-                fetch("/restart", {
-                    method: "POST"
-                })
-                console.log("Restarted :)")
-            }
-            function update() {
-                targetDate = init_timeout()
-                fetch("/update", {
-                    method: "POST"
-                })
-                console.log("Updated :)")
-            }
-            function refresh() {
-                targetDate = init_timeout()
-                fetch("/refresh", {
-                    method: "POST"
-                })
-                console.log("Refreshed :)")
-            }
-            function switch_to_terminal() {
-                fetch("/terminal", {
-                    method: "POST"
-                })
-                console.log("Switched to terminal")
-            }
-            function edit_configuration() {
-                fetch("/edit", {
-                    method: "POST"
-                })
-                console.log("Editing...")
+                fetch(target)
             }
             function switch_to_stregsystem() {
                 document.location.href = "NIX_PLEASE_CHANGE_ME"
@@ -147,13 +116,16 @@
         <section>
             <p>Actions</p>
             Når du er færdig med at pille ved strandvejens konfiguration, kan du bruge følgende knapper til at interagere med stregmaskinen's OS.<br>
+            Generelle actions:
             <button onclick="toggle_output_log()">Show output log</button>
             <button onclick="save()">Save</button>
-            <button onclick="refresh()">Refresh settings</button><br>
-            <button onclick="update()">Update now</button>
-            <button onclick="rebuild()">Rebuild now</button>
-            <button onclick="restart()">Restart system</button><br>
-            <button onclick="switch_to_terminal()">Switch to terminal</button>
+            <button onclick="do_post('terminal')">Switch to terminal</button><br>
+            Nix actions:
+            <button onclick="do_post('refresh-settings')">Refresh settings</button>
+            <button onclick="do_post('refresh-inputs')">Refresh NixOS Flake Inputs</button>
+            <button onclick="do_post('pull')">Pull latest configuration from GitHub</button>
+            <button onclick="do_post('rebuild')">Rebuild now</button>
+            <button onclick="do_post('restart')">Restart system</button><br>
             <br>
 
             <div id="output_log"></div>

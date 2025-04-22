@@ -26,6 +26,13 @@
                     (maintenance.nixosModules.settings system)
                 ];
             };
+            strandvejen-init = nixpkgs.lib.nixosSystem {
+                system = "x86_64-linux";
+                modules = [
+                    ./strandvejen
+                    ./systems/strandvejen
+                ];
+            };
         };
         devShells."x86_64-linux".default = let
             pkgs = import nixpkgs { system = "x86_64-linux"; };
