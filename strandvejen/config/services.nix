@@ -47,7 +47,6 @@ in {
                 ${pkgs.git}/bin/git pull
                 ${pkgs.nix}/bin/nix flake update nixpkgs nixos-hardware
                 ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch
-                ''}
                 ${if config.strandvejen.should_restart then "reboot" else ""}
             ''}/bin/update";
         };
