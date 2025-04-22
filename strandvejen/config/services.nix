@@ -84,7 +84,6 @@ in {
                 ${pkgs.git}/bin/git pull
                 ${pkgs.nix}/bin/nix flake update maintenance
                 ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch
-                ''}
                 ${pkgs.sudo}/bin/sudo -u treo ${pkgs.writeScriptBin "reload-i3" ''
                     #!${pkgs.bash}/bin/bash
                     export DISPLAY=:0
