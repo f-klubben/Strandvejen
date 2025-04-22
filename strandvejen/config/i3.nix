@@ -1,11 +1,10 @@
 { pkgs, config, ... }: let
 
     
-    utils = pkgs.callPackage ../../utils {};
-    firefoxPrefix = "${pkgs.firefox}/bin/firefox --kiosk --private-window";
-    stregsystemFirefox = ''${firefoxPrefix} "${config.strandvejen.address}:${builtins.toString config.strandvejen.port}/${builtins.toString config.strandvejen.room_id}"'';
-    stregsystemFallback = utils.mkPrivilegedScript stregsystemFirefox;
-    sourceBg = "${pkgs.fetchFromGitHub {
+    processSwitcher = pkgs.callPackage ./processSwitcher {
+        address = "${config.strandvejen.address}:${builtins.toString config.strandvejen.port}/${builtins.toString config.strandvejen.room_id}";
+    };
+    sourceImage = "${pkgs.fetchFromGitHub {
         owner = "f-klubben";
         repo = "logo";
         rev = "master";
@@ -44,21 +43,13 @@ in {
     services.xserver.windowManager.i3 = {
         enable = true;
         configFile = pkgs.writeText "config" ''
-            bindsym Mod1+Shift+t exec ${stregsystemFallback 
-                "${firefoxPrefix} http://localhost:8080"
-            }
-
-            bindsym Mod1+Shift+Return exec ${stregsystemFallback 
-                "${pkgs.alacritty}/bin/alacritty"
-            }
-
-            bindsym Mod1+Shift+s exec ${utils.mkScript 
-                stregsystemFirefox
-            }
+            bindsym Mod1+Shift+t exec ${processSwitcher.maintenance}
+            bindsym Mod1+Shift+Return exec ${processSwitcher.terminal}
+            bindsym Mod1+Shift+s exec ${processSwitcher.stregsystem}
 
             exec --no-startup-id xset s off -dpms
 
-            exec ${pkgs.feh}/bin/feh --bg-scale ${wallpaperEditor sourceBg "Strandvejen for dummies" [
+            exec ${pkgs.feh}/bin/feh --bg-scale ${wallpaperEditor sourceImage "Strandvejen for dummies" [
                 "Keybinds:"
                 "Alt+Shift+s: reload stregsystemet"
                 "Alt+Shift+t: maintenance-mode"
@@ -69,7 +60,7 @@ in {
                 "Alt+right: Go forward"
             ]}
 
-            exec ${stregsystemFirefox}
+            exec ${processSwitcher.stregsystemFirefox}
         '';
     };
 

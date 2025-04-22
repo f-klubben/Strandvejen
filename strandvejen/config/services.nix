@@ -1,6 +1,10 @@
 { pkgs, config, ... }: let
 
     maintenance = pkgs.callPackage ../../maintenance { address = "${config.strandvejen.address}:${builtins.toString config.strandvejen.port}"; };
+    processSwitcher = pkgs.callPackage ./processSwitcher {
+        address = "${config.strandvejen.address}:${builtins.toString config.strandvejen.port}/${builtins.toString config.strandvejen.room_id}";
+    };
+
 in {
     systemd.services.maintenance = {
         enable = true;
@@ -39,13 +43,10 @@ in {
             ExecStart = "${pkgs.writeScriptBin "update" ''
                 #!${pkgs.bash}/bin/bash
                 set -e
-                ${if config.strandvejen.local_build then ''
-                    cd /etc/nixos
-                    ${pkgs.git}/bin/git pull
-                    ${pkgs.nix}/bin/nix flake update nixpkgs nixos-hardware
-                    ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch
-                '' else ''
-                    ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch --flake github:f-klubben/Strandvejen
+                cd /etc/nixos
+                ${pkgs.git}/bin/git pull
+                ${pkgs.nix}/bin/nix flake update nixpkgs nixos-hardware
+                ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch
                 ''}
                 ${if config.strandvejen.should_restart then "reboot" else ""}
             ''}/bin/update";
@@ -62,11 +63,8 @@ in {
             ExecStart = "${pkgs.writeScriptBin "rebuild" ''
                 #!${pkgs.bash}/bin/bash
                 set -e
-                ${if config.strandvejen.local_build then ''
-                    cd /etc/nixos
-                    ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch
-                '' else ''
-                    ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch --flake github:f-klubben/Strandvejen
+                cd /etc/nixos
+                ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch
                 ''}
             ''}/bin/rebuild";
         };
@@ -82,13 +80,10 @@ in {
             ExecStart = "${pkgs.writeScriptBin "refresh" ''
                 #!${pkgs.bash}/bin/bash
                 set -e
-                ${if config.strandvejen.local_build then ''
-                    cd /etc/nixos
-                    ${pkgs.git}/bin/git pull
-                    ${pkgs.nix}/bin/nix flake update maintenance
-                    ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch
-                '' else ''
-                    ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch --flake github:f-klubben/Strandvejen
+                cd /etc/nixos
+                ${pkgs.git}/bin/git pull
+                ${pkgs.nix}/bin/nix flake update maintenance
+                ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch
                 ''}
                 ${pkgs.sudo}/bin/sudo -u treo ${pkgs.writeScriptBin "reload-i3" ''
                     #!${pkgs.bash}/bin/bash
@@ -99,6 +94,17 @@ in {
         };
     };
 
+    systemd.services.alacritty = {
+        enable = true;
+        serviceConfig = {
+            User = "treo";
+            ExecStart = "${pkgs.writeScriptBin "switch_to_terminal" ''
+                #!${pkgs.bash}/bin/bash
+                export DISPLAY=:0
+                ${pkgs.i3}/bin/i3 exec ${processSwitcher.unprivilegedTerminal}
+            ''}/bin/switch_to_terminal";
+        };
+    };
 
     systemd.services.ensure_maintenance_flake = {
         enable = true;
@@ -110,6 +116,5 @@ in {
         ''}/bin/ensure_maintenance_flake";
         wantedBy = ["default.target"];
     };
-
 
 }

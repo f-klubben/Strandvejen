@@ -22,10 +22,6 @@
             type = lib.types.listOf lib.types.str;
             default = [];
         };
-        local_build = lib.mkOption {
-            type = lib.types.bool;
-            default = true;
-        };
         rebuild_time = lib.mkOption {
             type = lib.types.str;
             default = "Sat 04:00:00";

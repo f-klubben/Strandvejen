@@ -58,14 +58,6 @@ def start(service: str):
 def restart():
     system("reboot")
 
-
-def switch_to_terminal():
-    kill_list: list[str] = ["firefox", "qsudo", "alacritty"]
-    for kill_target in kill_list:
-        system(f"pkill -15 {kill_target}")
-    system("alacritty")
-
-
 class Handler(BaseHTTPRequestHandler):
     def get_data(self) -> dict[str, Any]:
         data_size: int = int(self.headers.get("Content-Length", 0))
@@ -81,10 +73,6 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_response(200)
                 self.end_headers()
                 settings.save(self.wfile)
-            case "/terminal":
-                self.send_response(200)
-                self.end_headers()
-                switch_to_terminal()
             case "/stdout":
                 self.send_response(200)
                 self.end_headers()
@@ -111,6 +99,8 @@ class Handler(BaseHTTPRequestHandler):
                 start("update")
             case "/refresh":
                 start("refresh")
+            case "/terminal":
+                start("alacritty")
 
             case "/restart":
                 restart()

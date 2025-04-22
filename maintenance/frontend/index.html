@@ -43,7 +43,6 @@
                 var postData = {
                     strandvejen:{
                         should_restart: document.getElementById("should_restart").checked,
-                        local_build: document.getElementById("local_build").checked,
                         room_id: parseInt(document.getElementById("room_id").value),
                         address: document.getElementById("address").value,
                         port: parseInt(document.getElementById("port").value),
@@ -88,9 +87,15 @@
             }
             function switch_to_terminal() {
                 fetch("/terminal", {
-                    method: "GET"
+                    method: "POST"
                 })
                 console.log("Switched to terminal")
+            }
+            function edit_configuration() {
+                fetch("/edit", {
+                    method: "POST"
+                })
+                console.log("Editing...")
             }
             function switch_to_stregsystem() {
                 document.location.href = "NIX_PLEASE_CHANGE_ME"
@@ -147,7 +152,7 @@
             <button onclick="refresh()">Refresh settings</button><br>
             <button onclick="update()">Update now</button>
             <button onclick="rebuild()">Rebuild now</button>
-            <button onclick="restart()">Restart system</button>
+            <button onclick="restart()">Restart system</button><br>
             <button onclick="switch_to_terminal()">Switch to terminal</button>
             <br>
 
@@ -159,14 +164,6 @@
             <p>Toggle Genstart</p>
             Denne indstilling vil få systemet til kun at genstarte fra terminalen, ellers genstarter systemet hver søndag kl. 04.00<br>
             <input id="should_restart" type="checkbox">
-        </section>
-        <hr>
-
-        <section>
-            <p>Lokalt build</p>
-            Vigtigt: kun brug denne indstilling hvis det er absolut nødvendigt at build fra en lokal konfiguration.
-            Ellers burde vi altid build fra git<br>
-            <input id="local_build" type="checkbox">
         </section>
         <hr>
 
@@ -211,7 +208,6 @@
             document.getElementById("room_id").value = json.strandvejen.room_id
             document.getElementById("extra_packages").value = json.strandvejen.extra_packages
             document.getElementById("should_restart").checked = json.strandvejen.should_restart
-            document.getElementById("local_build").checked = json.strandvejen.local_build
             document.getElementById("address").value = json.strandvejen.address
             document.getElementById("port").value = json.strandvejen.port
             document.getElementById("rebuild_time").value = json.strandvejen.rebuild_time

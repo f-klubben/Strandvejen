@@ -1,4 +1,4 @@
-{ pkgs, lib, ... }: let
+{ pkgs, ... }: let
 
     killList = [
         "firefox"
@@ -30,6 +30,4 @@ in rec {
     ''}/bin/script.sh";
 
     askPassword = "${pkgs.qsudo}/bin/qsudo sudo -u treo ls";
-
-    getJsonFieldRuntime = jqQuery: ''$(cat $MAINTENANCE_FILE | jq -r "${jqQuery}")'';
 }

@@ -12,7 +12,6 @@ cat << EOF > /var/maintenance/settings.json
         "room_id":10,
         "extra_packages":[],
         "should_restart":false,
-        "local_build":true,
         "rebuild_time":"Sat 04:00:00",
         "garbage_collection_time":"Sun 04:00:00"
     }
