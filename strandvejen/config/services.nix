@@ -117,6 +117,7 @@ in {
                 ${pkgs.git}/bin/git clone https://github.com/f-klubben/Strandvejen /etc/nixos
                 cd /etc/nixos
                 ${pkgs.nix}/bin/nix flake update maintenance
+            fi
         ''}/bin/ensure-maintenance-flake";
         wantedBy = ["default.target"];
     };
