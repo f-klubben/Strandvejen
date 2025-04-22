@@ -9,7 +9,7 @@ from subprocess import check_output
 
 script_dir: str = path.dirname(argv[0])
 
-services: list[str] = ["rebuild.service", "update.service", "refresh-settings.service", "refresh-inputs.service", "pull.service", "terminal.service"]
+services: list[str] = ["rebuild.service", "update.service", "refresh-settings.service", "refresh-inputs.service", "pull.service", "terminal.service", "nix-gc.service"]
 last_read: datetime = datetime.now()
 output_log_lock: Lock = Lock()
 output_log: list[str] = []
