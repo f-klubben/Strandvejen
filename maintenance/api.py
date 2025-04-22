@@ -100,7 +100,7 @@ class Handler(BaseHTTPRequestHandler):
             case "/refresh":
                 start("refresh")
             case "/terminal":
-                start("alacritty")
+                start("terminal")
 
             case "/restart":
                 restart()

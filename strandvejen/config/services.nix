@@ -94,15 +94,15 @@ in {
         };
     };
 
-    systemd.services.alacritty = {
+    systemd.services.terminal = {
         enable = true;
         serviceConfig = {
             User = "treo";
-            ExecStart = "${pkgs.writeScriptBin "switch_to_terminal" ''
+            ExecStart = "${pkgs.writeScriptBin "switch-to-terminal" ''
                 #!${pkgs.bash}/bin/bash
                 export DISPLAY=:0
                 ${pkgs.i3}/bin/i3 exec ${processSwitcher.unprivilegedTerminal}
-            ''}/bin/switch_to_terminal";
+            ''}/bin/switch-to-terminal";
         };
     };
 
