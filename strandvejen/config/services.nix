@@ -106,14 +106,19 @@ in {
         };
     };
 
-    systemd.services.ensure_maintenance_flake = {
+    systemd.services.ensure-nix-env = {
         enable = true;
-        serviceConfig.ExecStart = "${pkgs.writeScriptBin "ensure_maintenance_flake" ''
+        serviceConfig.ExecStart = "${pkgs.writeScriptBin "ensure-maintenance-flake" ''
             #!${pkgs.bash}/bin/bash
             if ! [ -f /var/maintenance/flake.nix ]; then
                 ${pkgs.bash}/bin/bash ${../../scripts/initialize.sh}
             fi
-        ''}/bin/ensure_maintenance_flake";
+            if ! [ -f /etc/nixos/flake.nix ]; then
+                rm -rf /etc/nixos
+                ${pkgs.git}/bin/git clone https://github.com/f-klubben/Strandvejen /etc/nixos
+                cd /etc/nixos
+                ${pkgs.nix}/bin/nix flake update maintenance
+        ''}/bin/ensure-maintenance-flake";
         wantedBy = ["default.target"];
     };
 
