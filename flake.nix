@@ -2,21 +2,31 @@
     description = "F-klubben strandvejen nix flake";
     inputs = {
         nixpkgs.url = "nixpkgs/nixos-24.11";
-        nixos-hardware = {
-            url = "github:NixOS/nixos-hardware/master";
-        };
+        nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+        # local flake for settings, this should be initialized with the script at ./scripts/initialize.sh
+        maintenance.url = "path:/var/maintenance";
+        maintenance.inputs.nixpkgs.follows = "nixpkgs";
     };
-    outputs = { self, nixpkgs, nixos-hardware }: {
+    outputs = { self, nixpkgs, nixos-hardware, maintenance }: {
         nixosConfigurations = {
-            strandvejen-rpi4 = nixpkgs.lib.nixosSystem {
+            strandvejen-rpi4 = nixpkgs.lib.nixosSystem rec {
                 system = "aarch64-linux";
                 modules = [
                     ./strandvejen
+                    (maintenance.nixosModules.settings system)
                     ./systems/raspberry-pi-4
                     nixos-hardware.nixosModules.raspberry-pi-4
                 ];
             };
-            strandvejen = nixpkgs.lib.nixosSystem {
+            strandvejen = nixpkgs.lib.nixosSystem rec {
+                system = "x86_64-linux";
+                modules = [
+                    ./strandvejen
+                    ./systems/strandvejen
+                    (maintenance.nixosModules.settings system)
+                ];
+            };
+            strandvejen-init = nixpkgs.lib.nixosSystem {
                 system = "x86_64-linux";
                 modules = [
                     ./strandvejen
@@ -38,9 +48,10 @@
             pkgs = import nixpkgs { system = "x86_64-linux"; };
         in  {
             default = self.nixosConfigurations.strandvejen.config.system.build.vmWithBootLoader;
-            maintenance = import ./maintenance { inherit pkgs; };
+            maintenance = import ./maintenance { inherit pkgs; address = "http://10.0.0.1:8080"; };
+            maintenance-frontend = import ./maintenance/frontend { inherit pkgs; address = "http://10.0.0.1:8080"; };
             test-image = let 
-                wallpaperEditor = pkgs.callPackage ./strandvejen/wallpaperEditor {};
+                wallpaperEditor = pkgs.callPackage ./strandvejen/config/wallpaperEditor {};
                 image = "${pkgs.fetchFromGitHub {
                     owner = "f-klubben";
                     repo = "logo";
@@ -53,7 +64,7 @@
                 ":)"
                 "<3"
             ];
-            plymouth-theme = pkgs.callPackage ./strandvejen/plymouthTheme { mkDerivation = pkgs.stdenv.mkDerivation; };
+            plymouth-theme = pkgs.callPackage ./utils/plymouthTheme { mkDerivation = pkgs.stdenv.mkDerivation; };
         };
     };
 }

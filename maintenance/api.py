@@ -1,110 +1,70 @@
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from json import dumps, load, loads
 from sys import argv
-from os import O_NONBLOCK, environ, path, system
-from typing import IO, Any
-from subprocess import Popen, PIPE
-from fcntl import F_GETFL, F_SETFL, fcntl
+from os import path, system
+from typing import Any
 from threading import Lock
+from datetime import datetime
+from subprocess import check_output
 
 script_dir: str = path.dirname(argv[0])
-maintenance_file: str = environ["MAINTENANCE_FILE"]
 
-processes: list[Popen] = []
+services: list[str] = [
+    "rebuild.service",
+    "update.service",
+    "refresh-settings.service",
+    "refresh-inputs.service",
+    "pull.service",
+    "terminal.service",
+    "nix-gc.service",
+]
+last_read: datetime = datetime.now()
 output_log_lock: Lock = Lock()
 output_log: list[str] = []
 
 
-def run_process(command: str):
-    global processes
-    processes.append(Popen(command, shell=True, stderr=PIPE))
+def read_services() -> str:
+    global last_read
+    output = ""
+    timestamp = last_read.strftime("%Y-%m-%d %H:%M:%S")
+    for service in services:
+        output += (
+            check_output(["journalctl", "-u", service, "--since", timestamp]).decode().replace("-- No entries --\n", "")
+        )
+    last_read = datetime.now()
 
-
-def read(output: IO) -> str:
-    fd: int = output.fileno()
-    fl: int = fcntl(fd, F_GETFL)
-    fcntl(fd, F_SETFL, fl | O_NONBLOCK)
-
-    text: bytes | None = output.read()
-    if text is None:
-        return ""
-    return text.decode()
-
-
-def read_process() -> str:
-    toBeRemoved: list[Popen] = []
-    output: str = ""
-    for process in processes:
-        if process.poll() is not None:
-            toBeRemoved.append(process)
-        else:
-            if process.stderr is not None:
-                output += read(process.stderr)
-            if process.stdout is not None:
-                output += read(process.stdout)
     if output_log_lock.acquire(blocking=False):  # Don't acquire if its locked
         output_log_lock.locked_lock()
         output += "\n".join(output_log)
         output_log.clear()
     output_log_lock.release()
 
-    for process in toBeRemoved:
-        processes.remove(process)
     return output
 
 
 class Settings:
     def __init__(self) -> None:
-        data: dict[str, Any]
-        if not path.exists(maintenance_file):
-            data = {"room_id": 1, "extra_packages": [], "should_restart": False}
-        else:
-            with open(maintenance_file, "r") as file:
-                data = load(file)
-        self.room_id: int = data["room_id"]
-        self.extra_packages: list[str] = data["extra_packages"]
-        self.should_restart: bool = data["should_restart"]
+        self.data: dict[str, Any]
+        with open("/var/maintenance/settings.json", "r") as file:
+            self.data = load(file)
 
     def save(self, fp=None):
         if fp is None:
-            with open(maintenance_file, "w") as file:
-                file.write(
-                    dumps(
-                        {
-                            "room_id": self.room_id,
-                            "extra_packages": self.extra_packages,
-                            "should_restart": self.should_restart,
-                        }
-                    )
-                )
+            with open("/var/maintenance/settings.json", "w") as file:
+                file.write(dumps(self.data))
         else:
-            fp.write(
-                dumps(
-                    {
-                        "room_id": self.room_id,
-                        "extra_packages": self.extra_packages,
-                        "should_restart": self.should_restart,
-                    }
-                ).encode()
-            )
+            fp.write(dumps(self.data).encode())
 
 
 settings: Settings = Settings()
 
 
-def rebuild():
-    run_process(f"{script_dir}/rebuild.sh")
+def start(service: str):
+    system(f"systemctl start {service}.service")
 
 
 def restart():
-    run_process("reboot")
-
-
-def switch_to_terminal():
-    kill_list: list[str] = ["firefox", "qsudo", "alacritty"]
-    for kill_target in kill_list:
-        system(f"pkill -15 {kill_target}")
-    system("alacritty")
+    system("reboot")
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -122,14 +82,10 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_response(200)
                 self.end_headers()
                 settings.save(self.wfile)
-            case "/terminal":
-                self.send_response(200)
-                self.end_headers()
-                switch_to_terminal()
             case "/stdout":
                 self.send_response(200)
                 self.end_headers()
-                output = read_process()
+                output: str = read_services()
                 self.wfile.write(output.encode())
             case _:
                 with open(f"{script_dir}/frontend/index.html", "rb") as file:
@@ -141,17 +97,23 @@ class Handler(BaseHTTPRequestHandler):
         match self.path:
             case "/save":
                 data: dict[str, Any] = self.get_data()
-                if "room_id" in data:
-                    settings.room_id = data["room_id"]
-                if "extra_packages" in data:
-                    settings.extra_packages = data["extra_packages"]
-                if "should_restart" in data:
-                    settings.should_restart = data["should_restart"]
+                for key in data:
+                    settings.data[key] = data[key]
                 settings.save()
                 with output_log_lock:
                     output_log.append("Successfully wrote maintenance file\n")
             case "/rebuild":
-                rebuild()
+                start("rebuild")
+            case "/update":
+                start("update")
+            case "/refresh-settings":
+                start("refresh-settings")
+            case "/refresh-inputs":
+                start("refresh-inputs")
+            case "/pull":
+                start("pull")
+            case "/terminal":
+                start("terminal")
 
             case "/restart":
                 restart()

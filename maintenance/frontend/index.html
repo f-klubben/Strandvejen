@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html lang="da-dk">
     <head>
-        <link rel="stylesheet" href="https://stregsystem.fklub.dk/static/stregsystem/stregsystem.css">
+        <link rel="stylesheet" href="NIX_PLEASE_CHANGE_ME/static/stregsystem/stregsystem.css">
         <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
         <meta content="utf-8" http-equiv="encoding">
         <style>
@@ -14,7 +14,7 @@
                 word-wrap: break-word;
                 white-space: pre-wrap;
                 text-align: left;
-                display: inline-block;
+                display: none;
             }
             hr {
                 margin: 2% 20% auto 20%;
@@ -32,42 +32,52 @@
     </header>
     <body style="display: block; text-align: center;">
         <script>
+            function init_timeout() {
+                return new Date(Date.now() + 10 * 60000)
+            }
+            var targetDate = init_timeout()
             // add logic
             function save() {
+                targetDate = init_timeout()
+                var extra_packages = document.getElementById("extra_packages").value
                 var postData = {
-                    should_restart:document.getElementById("should_restart").checked,
-                    room_id:document.getElementById("room_id").value,
-                    extra_packages:document.getElementById("extra_packages").value
+                    strandvejen:{
+                        should_restart: document.getElementById("should_restart").checked,
+                        room_id: parseInt(document.getElementById("room_id").value),
+                        address: document.getElementById("address").value,
+                        port: parseInt(document.getElementById("port").value),
+                        extra_packages: extra_packages == "" ? [] : extra_packages.split(),
+                        rebuild_time: document.getElementById("rebuild_time").value,
+                        garbage_collection_time: document.getElementById("garbage_collection_time").value
+                    }
                 }
                 fetch("/save", {
                     method: "POST",
                     body: JSON.stringify(postData)
                 })
-                console.log("Saved :)")
             }
-            function rebuild() {
-                fetch("/rebuild", {
+            function do_post(target) {
+                targetDate = init_timeout()
+                fetch(target, {
                     method: "POST"
                 })
-                console.log("Rebuilt :)")
             }
-            function restart() {
-                fetch("/restart", {
-                    method: "POST"
-                })
-                console.log("Restarted :)")
-            }
-            function switch_to_terminal() {
-                fetch("/terminal", {
-                    method: "GET"
-                })
-                console.log("Switched to terminal")
+            function do_get(target) {
+                targetDate = init_timeout()
+                fetch(target)
             }
             function switch_to_stregsystem() {
-                document.location.href = "https://stregsystem.fklub.dk"
+                document.location.href = "NIX_PLEASE_CHANGE_ME"
+            }
+            function toggle_output_log() {
+                var log = document.getElementById("output_log")
+                if (log.style.display == "none") {
+                    log.style.display = "inline-block"
+                } else {
+                    log.style.display = "none"
+                }
             }
 
-            var targetDate = new Date(Date.now() + 10*60000)
 
             window.addEventListener('load', () => {
                 setInterval(() => {
@@ -102,6 +112,25 @@
             Systemet går tilbage til stregsystemet om <span id="minutes"></span> minutter og <span id="seconds"></span> sekunder
         </section>
         <hr>
+        
+        <section>
+            <p>Actions</p>
+            Når du er færdig med at pille ved strandvejens konfiguration, kan du bruge følgende knapper til at interagere med stregmaskinen's OS.<br>
+            Generelle actions:
+            <button onclick="toggle_output_log()">Show output log</button>
+            <button onclick="save()">Save</button>
+            <button onclick="do_post('terminal')">Switch to terminal</button><br>
+            Nix actions:
+            <button onclick="do_post('refresh-settings')">Refresh settings</button>
+            <button onclick="do_post('refresh-inputs')">Refresh NixOS Flake Inputs</button>
+            <button onclick="do_post('pull')">Pull latest configuration from GitHub</button>
+            <button onclick="do_post('rebuild')">Rebuild now</button>
+            <button onclick="do_post('restart')">Restart system</button><br>
+            <br>
+
+            <div id="output_log"></div>
+        </section>
+        <hr>
 
         <section>
             <p>Toggle Genstart</p>
@@ -109,6 +138,26 @@
             <input id="should_restart" type="checkbox">
         </section>
         <hr>
+
+        <section>
+            <p>Ugentlige build tider</p>
+            Denne indstilling sætter hvilke tider rebuilds og garbage collection skal ske.<br>
+            NOTE: dette vil først træde i kræft efter du gennemfører et build (nixos-rebuild switch) eller ved tryk på knappen herunder<br>
+            <input id="rebuild_time" placeholder="Sat 04:00:00">
+            <input id="garbage_collection_time" placeholder="Sun 04:00:00">
+        </section>
+        <hr>
+
+        <section>
+            <p>Set address</p>
+            Denne indstilling bør kun ændres hvis systemet flyttes, eller hvis det køres i udviklings tilstand<br>
+            <!--Grundet indstillinger i firefox's format, bliver porten nødt til at blive sat separat<br>-->
+            <input id="address" placeholder="address">
+            <input id="port" placeholder="port">
+        </section>
+        <hr>
+
+
 
         <section>
             <p>Set Room ID</p>
@@ -120,32 +169,21 @@
         <section>
             <p>Extra system packages</p>
             For at simplificere installation af system pakker på denne maskine, idet NixOS håndterer pakker anderledes end traditionelle Linux distributioner, kan du ændre i denne liste af pakker.<br>
-            NOTE: dette er ikke færdig implementeret og gør ikke noget endnu<br>
             <textarea id="extra_packages" rows=20 cols=80></textarea>
         </section>
         <hr>
-        
-        <section>
-            <p>Actions</p>
-            Når du er færdig med at pille ved strandvejens konfiguration, kan du bruge følgende knapper til at interagere med stregmaskinen's OS.<br>
-            <button onclick="save()">Save</button>
-            <button onclick="rebuild()">Rebuild now</button>
-            <button onclick="restart()">Restart system</button>
-            <button onclick="switch_to_terminal()">Switch to terminal</button>
-        </section>
-        <hr>
 
-        <section>
-            <p>Output log</p>
-            <div id="output_log"></div>
-        </section>
 
     </body>
     <script>
         fetch("/settings").then(response => response.json().then(json => {
-            document.getElementById("room_id").value = json.room_id
-            document.getElementById("extra_packages").value = json.extra_packages
-            document.getElementById("should_restart").checked = json.should_restart
+            document.getElementById("room_id").value = json.strandvejen.room_id
+            document.getElementById("extra_packages").value = json.strandvejen.extra_packages
+            document.getElementById("should_restart").checked = json.strandvejen.should_restart
+            document.getElementById("address").value = json.strandvejen.address
+            document.getElementById("port").value = json.strandvejen.port
+            document.getElementById("rebuild_time").value = json.strandvejen.rebuild_time
+            document.getElementById("garbage_collection_time").value = json.strandvejen.garbage_collection_time
         }))
     </script>
 </html>
