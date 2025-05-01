@@ -46,6 +46,7 @@ in {
             bindsym Mod1+Shift+t exec ${processSwitcher.maintenance}
             bindsym Mod1+Shift+Return exec ${processSwitcher.terminal}
             bindsym Mod1+Shift+s exec ${processSwitcher.stregsystem}
+            bindsym F5 exec ${pkgs.neofetch}/bin/neofetch
 
             exec --no-startup-id xset s off -dpms
 
